@@ -17,6 +17,7 @@ export interface OrderState {
   sessionId: string;
   stage: OrderStage;
   location: LocationId | null;
+  drink: string | null;
   milkType: MilkType | null;
   pastry: PastryType | null;
   tip: TipOption | null;

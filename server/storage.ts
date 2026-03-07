@@ -14,6 +14,7 @@ function createInitialOrderState(sessionId: string): OrderState {
     sessionId,
     stage: "greeting",
     location: null,
+    drink: null,
     milkType: null,
     pastry: null,
     tip: null,
