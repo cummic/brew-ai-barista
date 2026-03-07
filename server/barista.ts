@@ -138,11 +138,9 @@ export function getStoreInfo(locationId: LocationId) {
 }
 
 export function submitOrder(orderData: Record<string, unknown>, orderState: OrderState) {
-  const confirmationNumber = `BRW-${Date.now().toString(36).toUpperCase()}`;
   return {
     success: true,
-    confirmation_number: confirmationNumber,
-    message: `Order confirmed! Your latte will be ready shortly at the ${orderData.location} location.`,
+    message: `Order confirmed. Customer name will be on the order at the pickup area.`,
     order: orderData,
   };
 }
