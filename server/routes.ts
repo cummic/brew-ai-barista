@@ -72,6 +72,29 @@ export async function registerRoutes(
       };
       await storage.addMessage(sessionId, userMessage);
 
+      // Code-level location ambiguity check: if no location is confirmed yet and
+      // the user's message contains generic transit terms, intercept before Claude.
+      if (!session.orderState.location) {
+        const ambiguousTerms = /\b(station|stations|train|terminal|transit|hub|depot|downtown|the city)\b/i;
+        const exactLocation = /\b(wtc|world trade|penn station|penn|grand central|grand central terminal)\b/i;
+        const cleanedMsg = guardrailResult.sanitized || message;
+        if (ambiguousTerms.test(cleanedMsg) && !exactLocation.test(cleanedMsg)) {
+          const clarification = "Which location — World Trade Center, Penn Station, or Grand Central?";
+          const assistantMsg = {
+            role: "assistant" as const,
+            content: clarification,
+            timestamp: new Date().toISOString(),
+          };
+          await storage.addMessage(sessionId, assistantMsg);
+          return res.json({
+            message: clarification,
+            orderState: session.orderState,
+            toolsUsed: [],
+            validationPassed: true,
+          });
+        }
+      }
+
       session = await storage.getSession(sessionId)!;
       const conversationHistory = session!.messages.map((m) => ({
         role: m.role,
