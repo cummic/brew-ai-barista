@@ -13,6 +13,8 @@ A mobile-first WhatsApp-style chat application where users can order lattes from
 
 ## Pilot Scope
 
+All pricing, locations, and menu items are defined in **`menu.json`** at the project root — the single source of truth. No prices or location data are hardcoded elsewhere.
+
 - **Drink**: Latte only ($5.50 base)
 - **Locations**: WTC (World Trade Center), Penn Station, Grand Central
 - **Milk**: Whole (included), 2% (included), Almond (+$0.75)

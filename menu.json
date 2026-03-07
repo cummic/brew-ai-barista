@@ -1,0 +1,44 @@
+{
+  "drinks": [
+    {
+      "id": "latte",
+      "name": "Latte",
+      "base_price": 5.50
+    }
+  ],
+  "milk_options": [
+    { "id": "whole",  "name": "Whole Milk",   "upcharge": 0.00 },
+    { "id": "2%",     "name": "2% Milk",       "upcharge": 0.00 },
+    { "id": "almond", "name": "Almond Milk",   "upcharge": 0.75 }
+  ],
+  "pastries": [
+    { "id": "none",                 "name": "None",                 "price": 0.00 },
+    { "id": "croissant",            "name": "Croissant",            "price": 3.50 },
+    { "id": "chocolate_croissant",  "name": "Chocolate Croissant",  "price": 4.00 }
+  ],
+  "tip_options": [0, 10],
+  "tax_rate": 0.08875,
+  "locations": [
+    {
+      "id": "wtc",
+      "name": "World Trade Center",
+      "address": "Brookfield Place, 200 Vesey St, New York, NY 10281",
+      "status": "open",
+      "hours": "Mon–Fri 6:30 AM – 7:00 PM"
+    },
+    {
+      "id": "penn",
+      "name": "Penn Station",
+      "address": "1 Penn Plaza, New York, NY 10119",
+      "status": "open",
+      "hours": "Mon–Sun 5:30 AM – 9:00 PM"
+    },
+    {
+      "id": "grand_central",
+      "name": "Grand Central",
+      "address": "89 E 42nd St, New York, NY 10017",
+      "status": "open",
+      "hours": "Mon–Fri 6:00 AM – 8:00 PM"
+    }
+  ]
+}

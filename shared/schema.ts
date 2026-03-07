@@ -42,35 +42,3 @@ export const sendMessageSchema = z.object({
 });
 
 export type SendMessageInput = z.infer<typeof sendMessageSchema>;
-
-export const PRICING = {
-  LATTE_BASE: 5.50,
-  ALMOND_MILK_UPCHARGE: 0.75,
-  CROISSANT: 3.50,
-  CHOCOLATE_CROISSANT: 4.00,
-  TAX_RATE: 0.08875,
-} as const;
-
-export const LOCATIONS = {
-  wtc: {
-    id: "wtc",
-    name: "World Trade Center",
-    address: "Brookfield Place, 200 Vesey St, New York, NY 10281",
-    status: "open",
-    hours: "Mon–Fri 6:30 AM – 7:00 PM",
-  },
-  penn: {
-    id: "penn",
-    name: "Penn Station",
-    address: "1 Penn Plaza, New York, NY 10119",
-    status: "open",
-    hours: "Mon–Sun 5:30 AM – 9:00 PM",
-  },
-  grand_central: {
-    id: "grand_central",
-    name: "Grand Central",
-    address: "89 E 42nd St, New York, NY 10017",
-    status: "open",
-    hours: "Mon–Fri 6:00 AM – 8:00 PM",
-  },
-} as const;

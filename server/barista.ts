@@ -1,6 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import type { OrderState, MilkType, PastryType, LocationId, TipOption } from "@shared/schema";
-import { PRICING, LOCATIONS } from "@shared/schema";
+import { menu, getDrink, getMilkOption, getPastry, getLocation } from "./menu";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -110,19 +110,15 @@ const TOOLS: Anthropic.Tool[] = [
 ];
 
 export function calculateTotal(milkType: MilkType, pastry: PastryType, tip: TipOption) {
-  let subtotal = PRICING.LATTE_BASE;
+  const drink = getDrink("latte")!;
+  const milkOption = getMilkOption(milkType);
+  const pastryItem = getPastry(pastry);
 
-  if (milkType === "almond") {
-    subtotal += PRICING.ALMOND_MILK_UPCHARGE;
-  }
+  let subtotal = drink.base_price;
+  subtotal += milkOption?.upcharge ?? 0;
+  subtotal += pastryItem?.price ?? 0;
 
-  if (pastry === "croissant") {
-    subtotal += PRICING.CROISSANT;
-  } else if (pastry === "chocolate_croissant") {
-    subtotal += PRICING.CHOCOLATE_CROISSANT;
-  }
-
-  const tax = subtotal * PRICING.TAX_RATE;
+  const tax = subtotal * menu.tax_rate;
   const tipAmount = (subtotal + tax) * (tip / 100);
   const total = subtotal + tax + tipAmount;
 
@@ -135,9 +131,7 @@ export function calculateTotal(milkType: MilkType, pastry: PastryType, tip: TipO
 }
 
 export function getStoreInfo(locationId: LocationId) {
-  const location = LOCATIONS[locationId];
-  if (!location) return null;
-  return location;
+  return getLocation(locationId) ?? null;
 }
 
 export function submitOrder(orderData: Record<string, unknown>, orderState: OrderState) {
