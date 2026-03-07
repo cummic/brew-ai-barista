@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -43,14 +43,6 @@ const STAGE_PROGRESS: Record<string, number> = {
   confirmed: 100,
 };
 
-const QUICK_REPLIES: Record<string, string[]> = {
-  greeting: ["WTC", "Penn Station", "Grand Central"],
-  identifying: ["Yes, a Latte please"],
-  configuring: ["Whole Milk", "2% Milk", "Almond Milk"],
-  upselling: ["Croissant", "Chocolate Croissant", "No thanks"],
-  payment: ["0% tip", "10% tip"],
-  confirmed: [],
-};
 
 function TypingIndicator() {
   return (
@@ -314,7 +306,6 @@ export default function ChatPage() {
     });
   }, [sessionId, createSession]);
 
-  const quickReplies = orderState ? QUICK_REPLIES[orderState.stage] || [] : [];
 
   return (
     <div className="flex h-screen flex-col bg-background" data-testid="chat-page">
@@ -361,21 +352,6 @@ export default function ChatPage() {
 
         <div ref={messagesEndRef} />
       </div>
-
-      {quickReplies.length > 0 && !isTyping && orderState?.stage !== "confirmed" && (
-        <div className="flex gap-2 overflow-x-auto px-4 py-2 no-scrollbar border-t border-border/50">
-          {quickReplies.map((reply) => (
-            <button
-              key={reply}
-              onClick={() => handleSend(reply)}
-              data-testid={`button-quick-reply-${reply.toLowerCase().replace(/\s+/g, "-")}`}
-              className="flex-shrink-0 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-medium text-foreground hover-elevate transition-all"
-            >
-              {reply}
-            </button>
-          ))}
-        </div>
-      )}
 
       {orderState && <OrderPanel orderState={orderState} />}
 
