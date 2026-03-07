@@ -277,7 +277,7 @@ export async function runBaristaChat(
       allStateUpdates.tip as TipOption
     );
     const dollarPattern = /\$(\d+\.\d{2})/g;
-    const matches = [...finalMessage.matchAll(dollarPattern)];
+    const matches = Array.from(finalMessage.matchAll(dollarPattern));
     for (const match of matches) {
       const mentionedAmount = parseFloat(match[1]);
       if (Math.abs(mentionedAmount - expectedResult.total) > 0.01 &&
