@@ -4,6 +4,11 @@
       "id": "latte",
       "name": "Latte",
       "base_price": 5.50
+    },
+    {
+      "id": "cortado",
+      "name": "Cortado",
+      "base_price": 4.00
     }
   ],
   "milk_options": [
