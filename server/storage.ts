@@ -1,37 +1,71 @@
-import { type User, type InsertUser } from "@shared/schema";
 import { randomUUID } from "crypto";
-
-// modify the interface with any CRUD methods
-// you might need
+import type { ChatSession, OrderState, ChatMessage } from "@shared/schema";
 
 export interface IStorage {
-  getUser(id: string): Promise<User | undefined>;
-  getUserByUsername(username: string): Promise<User | undefined>;
-  createUser(user: InsertUser): Promise<User>;
+  getSession(sessionId: string): Promise<ChatSession | undefined>;
+  createSession(): Promise<ChatSession>;
+  updateSession(sessionId: string, updates: Partial<ChatSession>): Promise<ChatSession>;
+  addMessage(sessionId: string, message: ChatMessage): Promise<void>;
+  resetSession(sessionId: string): Promise<ChatSession>;
+}
+
+function createInitialOrderState(sessionId: string): OrderState {
+  return {
+    sessionId,
+    stage: "greeting",
+    location: null,
+    milkType: null,
+    pastry: null,
+    tip: null,
+    total: null,
+    submittedAt: null,
+  };
 }
 
 export class MemStorage implements IStorage {
-  private users: Map<string, User>;
+  private sessions: Map<string, ChatSession>;
 
   constructor() {
-    this.users = new Map();
+    this.sessions = new Map();
   }
 
-  async getUser(id: string): Promise<User | undefined> {
-    return this.users.get(id);
+  async getSession(sessionId: string): Promise<ChatSession | undefined> {
+    return this.sessions.get(sessionId);
   }
 
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username,
-    );
+  async createSession(): Promise<ChatSession> {
+    const sessionId = randomUUID();
+    const session: ChatSession = {
+      sessionId,
+      messages: [],
+      orderState: createInitialOrderState(sessionId),
+    };
+    this.sessions.set(sessionId, session);
+    return session;
   }
 
-  async createUser(insertUser: InsertUser): Promise<User> {
-    const id = randomUUID();
-    const user: User = { ...insertUser, id };
-    this.users.set(id, user);
-    return user;
+  async updateSession(sessionId: string, updates: Partial<ChatSession>): Promise<ChatSession> {
+    const session = this.sessions.get(sessionId);
+    if (!session) throw new Error(`Session ${sessionId} not found`);
+    const updated = { ...session, ...updates };
+    this.sessions.set(sessionId, updated);
+    return updated;
+  }
+
+  async addMessage(sessionId: string, message: ChatMessage): Promise<void> {
+    const session = this.sessions.get(sessionId);
+    if (!session) throw new Error(`Session ${sessionId} not found`);
+    session.messages.push(message);
+  }
+
+  async resetSession(sessionId: string): Promise<ChatSession> {
+    const fresh: ChatSession = {
+      sessionId,
+      messages: [],
+      orderState: createInitialOrderState(sessionId),
+    };
+    this.sessions.set(sessionId, fresh);
+    return fresh;
   }
 }
 

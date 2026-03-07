@@ -1,0 +1,434 @@
+import { useState, useEffect, useRef, useCallback } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { Send, RotateCcw, Coffee, MapPin, Milk, Croissant, CreditCard, CheckCircle2, Clock, ChevronDown, ChevronUp } from "lucide-react";
+import type { OrderState, ChatMessage } from "@shared/schema";
+
+const LOCATION_LABELS: Record<string, string> = {
+  wtc: "World Trade Center",
+  penn: "Penn Station",
+  grand_central: "Grand Central",
+};
+
+const MILK_LABELS: Record<string, string> = {
+  whole: "Whole Milk",
+  "2%": "2% Milk",
+  almond: "Almond Milk",
+};
+
+const PASTRY_LABELS: Record<string, string> = {
+  none: "No Pastry",
+  croissant: "Croissant",
+  chocolate_croissant: "Chocolate Croissant",
+};
+
+const STAGE_LABELS: Record<string, string> = {
+  greeting: "Getting Started",
+  identifying: "Selecting Location",
+  configuring: "Customizing Latte",
+  upselling: "Adding Extras",
+  payment: "Payment",
+  confirmed: "Order Confirmed",
+};
+
+const STAGE_PROGRESS: Record<string, number> = {
+  greeting: 10,
+  identifying: 25,
+  configuring: 50,
+  upselling: 65,
+  payment: 80,
+  confirmed: 100,
+};
+
+const QUICK_REPLIES: Record<string, string[]> = {
+  greeting: ["WTC", "Penn Station", "Grand Central"],
+  identifying: ["Yes, a Latte please"],
+  configuring: ["Whole Milk", "2% Milk", "Almond Milk"],
+  upselling: ["Croissant", "Chocolate Croissant", "No thanks"],
+  payment: ["0% tip", "10% tip"],
+  confirmed: [],
+};
+
+function TypingIndicator() {
+  return (
+    <div className="flex items-end gap-2 px-4 py-1">
+      <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
+        <Coffee className="h-4 w-4" />
+      </div>
+      <div className="flex items-center gap-1 rounded-2xl rounded-bl-sm bg-card border border-card-border px-4 py-3">
+        <span className="h-2 w-2 rounded-full bg-muted-foreground animate-bounce" style={{ animationDelay: "0ms" }} />
+        <span className="h-2 w-2 rounded-full bg-muted-foreground animate-bounce" style={{ animationDelay: "150ms" }} />
+        <span className="h-2 w-2 rounded-full bg-muted-foreground animate-bounce" style={{ animationDelay: "300ms" }} />
+      </div>
+    </div>
+  );
+}
+
+function MessageBubble({ message }: { message: ChatMessage }) {
+  const isUser = message.role === "user";
+  const time = new Date(message.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+
+  return (
+    <div className={`flex items-end gap-2 px-4 py-1 ${isUser ? "flex-row-reverse" : "flex-row"}`}>
+      {!isUser && (
+        <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm">
+          <Coffee className="h-4 w-4" />
+        </div>
+      )}
+      <div className={`flex flex-col gap-1 max-w-[78%] ${isUser ? "items-end" : "items-start"}`}>
+        <div
+          className={`
+            rounded-2xl px-4 py-2.5 text-sm leading-relaxed shadow-sm
+            ${isUser
+              ? "bg-primary text-primary-foreground rounded-br-sm"
+              : "bg-card border border-card-border text-card-foreground rounded-bl-sm"
+            }
+          `}
+          data-testid={`message-bubble-${message.role}-${message.timestamp}`}
+        >
+          {message.content.split("\n").map((line, i) => (
+            <span key={i}>
+              {line}
+              {i < message.content.split("\n").length - 1 && <br />}
+            </span>
+          ))}
+        </div>
+        <span className="text-xs text-muted-foreground px-1">{time}</span>
+      </div>
+    </div>
+  );
+}
+
+function OrderPanel({ orderState }: { orderState: OrderState }) {
+  const [expanded, setExpanded] = useState(false);
+  const progress = STAGE_PROGRESS[orderState.stage] || 0;
+  const isConfirmed = orderState.stage === "confirmed";
+
+  return (
+    <div className={`border-t border-border bg-card transition-all duration-300 ${expanded ? "max-h-72" : "max-h-16"}`}>
+      <button
+        className="flex w-full items-center justify-between px-4 py-3 text-sm font-medium"
+        onClick={() => setExpanded((e) => !e)}
+        data-testid="button-order-panel-toggle"
+      >
+        <div className="flex items-center gap-2">
+          {isConfirmed ? (
+            <CheckCircle2 className="h-4 w-4 text-green-500" />
+          ) : (
+            <Clock className="h-4 w-4 text-primary" />
+          )}
+          <span className="text-foreground font-semibold">
+            {isConfirmed ? "Order Confirmed" : STAGE_LABELS[orderState.stage]}
+          </span>
+          {orderState.total && (
+            <Badge variant="secondary" className="text-xs font-bold">
+              ${orderState.total.toFixed(2)}
+            </Badge>
+          )}
+        </div>
+        {expanded ? <ChevronDown className="h-4 w-4 text-muted-foreground" /> : <ChevronUp className="h-4 w-4 text-muted-foreground" />}
+      </button>
+
+      <div className="px-4 pb-1">
+        <div className="h-1 w-full rounded-full bg-muted overflow-hidden">
+          <div
+            className="h-full rounded-full bg-primary transition-all duration-700 ease-out"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+      </div>
+
+      {expanded && (
+        <div className="px-4 pb-4 pt-2 grid grid-cols-2 gap-2">
+          <OrderItem
+            icon={<MapPin className="h-3.5 w-3.5" />}
+            label="Location"
+            value={orderState.location ? LOCATION_LABELS[orderState.location] : null}
+          />
+          <OrderItem
+            icon={<Coffee className="h-3.5 w-3.5" />}
+            label="Drink"
+            value={orderState.milkType ? "Latte" : null}
+          />
+          <OrderItem
+            icon={<Milk className="h-3.5 w-3.5" />}
+            label="Milk"
+            value={orderState.milkType ? MILK_LABELS[orderState.milkType] : null}
+          />
+          <OrderItem
+            icon={<Croissant className="h-3.5 w-3.5" />}
+            label="Pastry"
+            value={orderState.pastry && orderState.pastry !== "none" ? PASTRY_LABELS[orderState.pastry] : orderState.pastry === "none" ? "None" : null}
+          />
+          <OrderItem
+            icon={<CreditCard className="h-3.5 w-3.5" />}
+            label="Payment"
+            value={orderState.tip !== null ? `Card on File · ${orderState.tip}% tip` : null}
+          />
+          {orderState.total && (
+            <OrderItem
+              icon={<CheckCircle2 className="h-3.5 w-3.5" />}
+              label="Total"
+              value={`$${orderState.total.toFixed(2)}`}
+            />
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function OrderItem({ icon, label, value }: { icon: React.ReactNode; label: string; value: string | null }) {
+  return (
+    <div className="flex items-start gap-2">
+      <span className={`mt-0.5 ${value ? "text-primary" : "text-muted-foreground/40"}`}>{icon}</span>
+      <div className="flex flex-col min-w-0">
+        <span className="text-xs text-muted-foreground">{label}</span>
+        <span className={`text-xs font-medium truncate ${value ? "text-foreground" : "text-muted-foreground/40"}`}>
+          {value || "Pending"}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+export default function ChatPage() {
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [orderState, setOrderState] = useState<OrderState | null>(null);
+  const [inputValue, setInputValue] = useState("");
+  const [isTyping, setIsTyping] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const queryClient = useQueryClient();
+
+  const createSession = useMutation({
+    mutationFn: () => apiRequest("POST", "/api/session").then((r) => r.json()),
+    onSuccess: (data: any) => {
+      setSessionId(data.sessionId);
+      setOrderState(data.orderState);
+      setMessages([]);
+      sendInitialGreeting(data.sessionId);
+    },
+  });
+
+  const sendMessage = useMutation({
+    mutationFn: (msg: string) =>
+      apiRequest("POST", "/api/chat", {
+        sessionId,
+        message: msg,
+      }).then((r) => r.json()),
+    onSuccess: (data: any) => {
+      const assistantMsg: ChatMessage = {
+        role: "assistant",
+        content: data.message,
+        timestamp: new Date().toISOString(),
+      };
+      setMessages((prev) => [...prev, assistantMsg]);
+      setOrderState(data.orderState);
+      setIsTyping(false);
+    },
+    onError: (err: any) => {
+      setIsTyping(false);
+      let errorContent = "Something went wrong. Please try again.";
+      if (err?.blocked) {
+        errorContent = "I noticed something unusual in your message. Let's keep things on track — what would you like to order?";
+      }
+      const errMsg: ChatMessage = {
+        role: "assistant",
+        content: errorContent,
+        timestamp: new Date().toISOString(),
+      };
+      setMessages((prev) => [...prev, errMsg]);
+    },
+  });
+
+  const sendInitialGreeting = useCallback(async (sid: string) => {
+    setIsTyping(true);
+    try {
+      const data = await apiRequest("POST", "/api/chat", {
+        sessionId: sid,
+        message: "Hello",
+      }).then((r) => r.json()) as any;
+      const content = data.message || "Hi! I'm Brew, your AI barista. Which location are you at — WTC, Penn Station, or Grand Central?";
+      const assistantMsg: ChatMessage = {
+        role: "assistant",
+        content,
+        timestamp: new Date().toISOString(),
+      };
+      setMessages([assistantMsg]);
+      if (data.orderState) setOrderState(data.orderState);
+    } catch (e) {
+      console.error(e);
+      const fallbackMsg: ChatMessage = {
+        role: "assistant",
+        content: "Hi! I'm Brew, your AI barista. Which location are you at — WTC, Penn Station, or Grand Central?",
+        timestamp: new Date().toISOString(),
+      };
+      setMessages([fallbackMsg]);
+    } finally {
+      setIsTyping(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    createSession.mutate();
+  }, []);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, isTyping]);
+
+  const handleSend = useCallback((text?: string) => {
+    const msg = (text || inputValue).trim();
+    if (!msg || !sessionId || sendMessage.isPending) return;
+
+    const userMsg: ChatMessage = {
+      role: "user",
+      content: msg,
+      timestamp: new Date().toISOString(),
+    };
+    setMessages((prev) => [...prev, userMsg]);
+    setInputValue("");
+    setIsTyping(true);
+    sendMessage.mutate(msg);
+  }, [inputValue, sessionId, sendMessage]);
+
+  const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
+  }, [handleSend]);
+
+  const handleReset = useCallback(() => {
+    if (!sessionId) return;
+    apiRequest("POST", `/api/session/${sessionId}/reset`).then(() => {
+      setMessages([]);
+      setOrderState(null);
+      setIsTyping(false);
+      createSession.mutate();
+    });
+  }, [sessionId, createSession]);
+
+  const quickReplies = orderState ? QUICK_REPLIES[orderState.stage] || [] : [];
+
+  return (
+    <div className="flex h-screen flex-col bg-background" data-testid="chat-page">
+      <header className="flex items-center justify-between border-b border-border bg-card px-4 py-3 shadow-sm sticky top-0 z-10">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm">
+            <Coffee className="h-5 w-5" />
+          </div>
+          <div>
+            <h1 className="text-sm font-bold text-foreground leading-tight">Brew</h1>
+            <p className="text-xs text-muted-foreground">AI Barista · Manhattan Pilot</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
+            <span className="h-2 w-2 rounded-full bg-green-500 shadow-sm" />
+            <span className="text-xs text-muted-foreground">Online</span>
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleReset}
+            data-testid="button-reset-chat"
+            title="Start over"
+          >
+            <RotateCcw className="h-4 w-4" />
+          </Button>
+        </div>
+      </header>
+
+      <div className="flex-1 overflow-y-auto py-3" data-testid="messages-container">
+        {createSession.isPending && messages.length === 0 && (
+          <div className="flex flex-col items-center justify-center h-full gap-3 text-muted-foreground">
+            <Coffee className="h-10 w-10 animate-pulse text-primary" />
+            <p className="text-sm">Firing up the espresso machine...</p>
+          </div>
+        )}
+
+        {messages.map((msg, idx) => (
+          <MessageBubble key={idx} message={msg} />
+        ))}
+
+        {isTyping && <TypingIndicator />}
+
+        <div ref={messagesEndRef} />
+      </div>
+
+      {quickReplies.length > 0 && !isTyping && orderState?.stage !== "confirmed" && (
+        <div className="flex gap-2 overflow-x-auto px-4 py-2 no-scrollbar border-t border-border/50">
+          {quickReplies.map((reply) => (
+            <button
+              key={reply}
+              onClick={() => handleSend(reply)}
+              data-testid={`button-quick-reply-${reply.toLowerCase().replace(/\s+/g, "-")}`}
+              className="flex-shrink-0 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-medium text-foreground hover-elevate transition-all"
+            >
+              {reply}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {orderState && <OrderPanel orderState={orderState} />}
+
+      {orderState?.stage !== "confirmed" && (
+        <div className="border-t border-border bg-card px-3 py-3">
+          <div className="flex items-end gap-2">
+            <Textarea
+              ref={textareaRef}
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Type a message..."
+              className="min-h-[44px] max-h-28 resize-none rounded-2xl border-border bg-background text-sm focus-visible:ring-1 focus-visible:ring-primary"
+              rows={1}
+              disabled={isTyping || !sessionId}
+              data-testid="input-chat-message"
+            />
+            <Button
+              size="icon"
+              onClick={() => handleSend()}
+              disabled={!inputValue.trim() || isTyping || !sessionId}
+              data-testid="button-send-message"
+              className="flex-shrink-0 rounded-full"
+            >
+              <Send className="h-4 w-4" />
+            </Button>
+          </div>
+          <p className="mt-1.5 text-center text-xs text-muted-foreground">
+            Press Enter to send · Shift+Enter for new line
+          </p>
+        </div>
+      )}
+
+      {orderState?.stage === "confirmed" && (
+        <div className="border-t border-border bg-card px-4 py-4">
+          <div className="flex flex-col items-center gap-3 text-center">
+            <CheckCircle2 className="h-8 w-8 text-green-500" />
+            <div>
+              <p className="text-sm font-semibold text-foreground">Your order is placed!</p>
+              <p className="text-xs text-muted-foreground mt-0.5">See you at the counter.</p>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleReset}
+              data-testid="button-new-order"
+            >
+              <RotateCcw className="h-3.5 w-3.5 mr-1.5" />
+              Start New Order
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
