@@ -8,7 +8,7 @@ A mobile-first WhatsApp-style chat application where users can order lattes from
 
 - **Frontend**: React + TypeScript + Tailwind CSS + Shadcn UI
 - **Backend**: Node.js + Express
-- **AI**: Anthropic Claude 3.5 Sonnet (`claude-3-5-sonnet-20241022`) with tool calling
+- **AI**: Anthropic Claude Sonnet 4.5 (`claude-sonnet-4-5`) with tool calling
 - **State**: In-memory session manager (JSON-based order state)
 
 ## Pilot Scope
