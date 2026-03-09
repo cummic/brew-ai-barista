@@ -16,6 +16,7 @@ export type TipOption = 0 | 10;
 export interface OrderState {
   sessionId: string;
   stage: OrderStage;
+  userName: string | null;
   location: LocationId | null;
   drink: string | null;
   milkType: MilkType | null;

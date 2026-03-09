@@ -144,7 +144,7 @@ export async function registerRoutes(
       const updatedSession = await storage.getSession(sessionId);
 
       logConversation({
-        user_id: clientIp === "unknown" ? "anonymous" : clientIp,
+        user_id: updatedSession?.orderState.userName ?? (clientIp === "unknown" ? "anonymous" : clientIp),
         session_id: sessionId,
         prompt: guardrailResult.sanitized || message,
         response: baristaResponse.message,

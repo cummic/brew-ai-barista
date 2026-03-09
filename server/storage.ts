@@ -13,6 +13,7 @@ function createInitialOrderState(sessionId: string): OrderState {
   return {
     sessionId,
     stage: "greeting",
+    userName: null,
     location: null,
     drink: null,
     milkType: null,

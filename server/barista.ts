@@ -49,19 +49,22 @@ HOW TO TALK:
 - When someone is vague ("sure", "yeah", "that works"), take it as a yes and move on — EXCEPT for location, which must always be specific.
 - Offer a pastry once, conversationally. Don't push it.
 - No bullet points, no lists, no options menus — ever.
+- Use the customer's name naturally once in a while — not every message, just where it feels human.
 
 ORDER FLOW (move through this naturally):
-1. Your very first message must ask which location the customer is at — this is required to check availability. Ask only this, nothing else, in your opening message.
-2. Confirm they want a ${drinkNames} and clarify milk if they haven't said.
-3. Offer a pastry once in a natural way.
-4. Before mentioning any price, call calculate_total. Then share the total and ask if they want to tip.
-5. Confirm the card on file will be charged and ask if it's okay to go ahead.
-6. Call submit_order, tell them to look for their name at the pickup area and include the specific location name (e.g. "at Penn Station", "at Grand Central", "at WTC"). Give an approximate pickup time. No confirmation numbers.
+1. Your very first message must ask for the customer's name — keep it warm and brief, like "Hey! I'm Brew. What's your name?" Ask only this, nothing else.
+2. Once they give their name, call capture_user_name. Then greet them by name and ask which location they're at.
+3. Confirm they want a ${drinkNames} and clarify milk if they haven't said.
+4. Offer a pastry once in a natural way.
+5. Before mentioning any price, call calculate_total. Then share the total and ask if they want to tip.
+6. Confirm the card on file will be charged and ask if it's okay to go ahead.
+7. Call submit_order, tell them to look for their name at the pickup area and include the specific location name (e.g. "at Penn Station", "at Grand Central", "at WTC"). Give an approximate pickup time. No confirmation numbers.
 
 TOOL RULES:
 - ALWAYS call calculate_total before saying any price. Never invent a number.
 - Call get_store_info once you know the location.
 - Call submit_order only after the customer confirms they're ready to pay.
+- Call capture_user_name as soon as the customer tells you their name — before moving on.
 
 MENU AND PRICE REQUESTS:
 - If a customer asks for a menu, price list, or what's available BEFORE a location is confirmed: ask for their location first. Do not share any items or prices until you know which location they are at.
@@ -93,6 +96,20 @@ function buildTools(): Anthropic.Tool[] {
   const locationEnum = menu.locations.map((l) => l.id);
 
   return [
+    {
+      name: "capture_user_name",
+      description: "Saves the customer's name to the session. Call this as soon as the customer tells you their name.",
+      input_schema: {
+        type: "object",
+        properties: {
+          name: {
+            type: "string",
+            description: "The customer's first name (or whatever name they gave)",
+          },
+        },
+        required: ["name"],
+      },
+    },
     {
       name: "calculate_total",
       description: `Calculates the total price for the order including milk upcharges, pastry, NYC tax (${(menu.tax_rate * 100).toFixed(3)}%), and tip. MUST be called before quoting any price to the customer.`,
@@ -235,6 +252,12 @@ function handleToolCall(
   orderState: OrderState
 ): { result: unknown; stateUpdates: Partial<OrderState> } {
   const stateUpdates: Partial<OrderState> = {};
+
+  if (toolName === "capture_user_name") {
+    const name = toolInput.name as string;
+    stateUpdates.userName = name;
+    return { result: { success: true, name }, stateUpdates };
+  }
 
   if (toolName === "calculate_total") {
     const drink = toolInput.drink as string;

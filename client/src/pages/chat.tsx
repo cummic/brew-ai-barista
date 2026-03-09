@@ -325,13 +325,14 @@ export default function ChatPage() {
             <span className="text-xs text-muted-foreground">Online</span>
           </div>
           <Button
-            variant="ghost"
-            size="icon"
+            variant="outline"
+            size="sm"
             onClick={handleReset}
             data-testid="button-reset-chat"
-            title="Start over"
+            className="text-xs gap-1.5"
           >
-            <RotateCcw className="h-4 w-4" />
+            <RotateCcw className="h-3.5 w-3.5" />
+            Reset Session
           </Button>
         </div>
       </header>
