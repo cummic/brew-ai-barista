@@ -1,5 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 
+const environment = process.env.NODE_ENV === "production" ? "production" : "development";
+
 export interface ConversationLogEntry {
   user_id: string;
   session_id: string;
@@ -15,6 +17,7 @@ export function logConversation(entry: ConversationLogEntry): void {
   const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!supabaseUrl || !supabaseKey) {
+    console.warn("[observability] Supabase credentials not set — skipping log.");
     return;
   }
 
@@ -30,6 +33,7 @@ export function logConversation(entry: ConversationLogEntry): void {
       latency_ms: entry.latency_ms,
       tools_used: entry.tools_used,
       validation_passed: entry.validation_passed,
+      environment,
       created_at: new Date().toISOString(),
     })
     .then(({ error }) => {
