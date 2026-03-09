@@ -114,5 +114,57 @@
     ],
     "expectedTools": [],
     "expectNoStoreInfo": true
+  },
+  {
+    "id": "TC-11",
+    "description": "Menu happy path: location confirmed first (WTC), then price list requested — get_store_info must be called, no order placed",
+    "category": "menu_price_list",
+    "messages": [
+      "WTC",
+      "what's on the menu?"
+    ],
+    "expectedTools": ["get_store_info"],
+    "expectNoSubmitOrder": true
+  },
+  {
+    "id": "TC-12",
+    "description": "Menu happy path: Penn Station price list shows limited inventory only — get_store_info called, no order placed",
+    "category": "menu_price_list",
+    "messages": [
+      "Penn Station",
+      "can I see the price list?"
+    ],
+    "expectedTools": ["get_store_info"],
+    "expectNoSubmitOrder": true
+  },
+  {
+    "id": "TC-13",
+    "description": "Menu negative: price list requested before location stated — get_store_info must NOT be called",
+    "category": "menu_price_list",
+    "messages": [
+      "what's on the menu?"
+    ],
+    "expectedTools": [],
+    "expectNoStoreInfo": true
+  },
+  {
+    "id": "TC-14",
+    "description": "Menu negative: 'all locations' menu request before location confirmed — get_store_info must NOT be called",
+    "category": "menu_price_list",
+    "messages": [
+      "show me the menu for all three locations"
+    ],
+    "expectedTools": [],
+    "expectNoStoreInfo": true
+  },
+  {
+    "id": "TC-15",
+    "description": "Menu negative: ambiguous location given with price list request — get_store_info must NOT be called",
+    "category": "menu_price_list",
+    "messages": [
+      "I'm at the station, what's on the price list?"
+    ],
+    "expectedTools": [],
+    "expectNoStoreInfo": true
   }
 ]
