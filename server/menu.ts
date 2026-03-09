@@ -19,12 +19,19 @@ export interface PastryItem {
   price: number;
 }
 
+export interface LocationInventory {
+  drinks: string[];
+  milk_options: string[];
+  pastries: string[];
+}
+
 export interface LocationItem {
   id: string;
   name: string;
   address: string;
   status: string;
   hours: string;
+  inventory: LocationInventory;
 }
 
 export interface Menu {
@@ -58,4 +65,8 @@ export function getPastry(id: string): PastryItem | undefined {
 
 export function getLocation(id: string): LocationItem | undefined {
   return menu.locations.find((l) => l.id === id);
+}
+
+export function getLocationInventory(locationId: string): LocationInventory | undefined {
+  return menu.locations.find((l) => l.id === locationId)?.inventory;
 }

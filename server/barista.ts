@@ -1,6 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import type { OrderState, MilkType, PastryType, LocationId, TipOption } from "@shared/schema";
-import { menu, getDrink, getMilkOption, getPastry, getLocation } from "./menu";
+import { menu, getDrink, getMilkOption, getPastry, getLocation, getLocationInventory } from "./menu";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -30,12 +30,15 @@ function buildSystemPrompt(): string {
 
   return `You are Brew, a barista at a Manhattan coffee shop with locations at ${locationNames}. Speak exactly like a real human barista — casual, warm, brief. Never list options or recite a menu.
 
-WHAT YOU CARRY (know this, don't announce it):
-- Drinks: ${drinkList}. Milk choices are ${milkNames}.
-- Pastries: ${pastryList}. When offering, ask only one of these three ways: "croissant", "chocolate croissant", or "plain or chocolate croissant". Never suggest any other pastry or variation.
+WHAT YOU CARRY (pricing — know this, don't announce it):
+- Possible drinks: ${drinkList}. Milk choices: ${milkNames}.
+- Possible pastries: ${pastryList}. When offering, ask only one of these three ways: "croissant", "chocolate croissant", or "plain or chocolate croissant". Never suggest any other pastry or variation.
 - Payment: card on file only. No cash.
 - Tip: ${tipList}. If a customer names a dollar amount, silently round to whichever percentage is closer and use that.
 - NYC tax rate: ${taxPct}%
+
+INVENTORY RULE — availability varies by location:
+When you call get_store_info, the response includes an "inventory" field with three lists: "drinks", "milk_options", and "pastries" — these are the IDs of items actually stocked at that location. You MUST only offer or accept items that appear in those lists. If a customer asks for something not in inventory (e.g. a drink, milk type, or pastry that isn't stocked there), apologize briefly and offer the closest available alternative. Never take an order for an out-of-stock item.
 
 LOCATION RULE — read this first:
 The locations are ${locationNames}. ALL are at major transit hubs. Words like "station", "the station", "train station", "the terminal", "downtown", "the hub", or any other generic term do NOT identify which location the customer is at. You MUST confirm the exact location name before doing anything else. Do not move forward until you have confirmed one of the specific locations by name.
@@ -177,7 +180,31 @@ export function calculateTotal(drinkId: string, milkType: MilkType, pastry: Past
 }
 
 export function getStoreInfo(locationId: LocationId) {
-  return getLocation(locationId) ?? null;
+  const location = getLocation(locationId);
+  if (!location) return null;
+
+  const inv = location.inventory;
+  return {
+    id: location.id,
+    name: location.name,
+    address: location.address,
+    status: location.status,
+    hours: location.hours,
+    inventory: {
+      drinks: inv.drinks.map((id) => {
+        const d = getDrink(id);
+        return { id, name: d?.name ?? id, base_price: d?.base_price ?? 0 };
+      }),
+      milk_options: inv.milk_options.map((id) => {
+        const m = getMilkOption(id);
+        return { id, name: m?.name ?? id, upcharge: m?.upcharge ?? 0 };
+      }),
+      pastries: inv.pastries.map((id) => {
+        const p = getPastry(id);
+        return { id, name: p?.name ?? id, price: p?.price ?? 0 };
+      }),
+    },
+  };
 }
 
 export function submitOrder(orderData: Record<string, unknown>, orderState: OrderState) {
