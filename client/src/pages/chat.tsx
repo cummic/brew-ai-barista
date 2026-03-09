@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import ReactMarkdown from "react-markdown";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
@@ -70,7 +71,7 @@ function MessageBubble({ message }: { message: ChatMessage }) {
           <Coffee className="h-4 w-4" />
         </div>
       )}
-      <div className={`flex flex-col gap-1 max-w-[78%] ${isUser ? "items-end" : "items-start"}`}>
+      <div className={`flex flex-col gap-1 max-w-[85%] ${isUser ? "items-end" : "items-start"}`}>
         <div
           className={`
             rounded-2xl px-4 py-2.5 text-sm leading-relaxed shadow-sm
@@ -81,12 +82,32 @@ function MessageBubble({ message }: { message: ChatMessage }) {
           `}
           data-testid={`message-bubble-${message.role}-${message.timestamp}`}
         >
-          {message.content.split("\n").map((line, i) => (
-            <span key={i}>
-              {line}
-              {i < message.content.split("\n").length - 1 && <br />}
-            </span>
-          ))}
+          {isUser ? (
+            message.content
+          ) : (
+            <ReactMarkdown
+              components={{
+                table: ({ children }) => (
+                  <table className="my-2 w-full border-collapse text-xs">{children}</table>
+                ),
+                thead: ({ children }) => (
+                  <thead className="border-b border-card-border">{children}</thead>
+                ),
+                th: ({ children }) => (
+                  <th className="py-1 pr-4 text-left font-semibold">{children}</th>
+                ),
+                td: ({ children }) => (
+                  <td className="py-0.5 pr-4">{children}</td>
+                ),
+                tr: ({ children }) => (
+                  <tr className="border-b border-card-border/40 last:border-0">{children}</tr>
+                ),
+                p: ({ children }) => <p className="mb-1 last:mb-0">{children}</p>,
+              }}
+            >
+              {message.content}
+            </ReactMarkdown>
+          )}
         </div>
         <span className="text-xs text-muted-foreground px-1">{time}</span>
       </div>
