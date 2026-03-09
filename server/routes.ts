@@ -3,6 +3,8 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { runBaristaChat } from "./barista";
 import { checkPromptInjection } from "./guardrails";
+import { checkRateLimit } from "./rateLimit";
+import { logConversation } from "./observability";
 import { sendMessageSchema } from "@shared/schema";
 import { z } from "zod";
 
@@ -50,6 +52,19 @@ export async function registerRoutes(
       }
 
       const { sessionId, message } = parsed.data;
+
+      const clientIp = (req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim()
+        ?? req.socket.remoteAddress
+        ?? "unknown";
+      const rateLimitKey = `${clientIp}:${sessionId}`;
+      const { allowed, retryAfterMs } = checkRateLimit(rateLimitKey);
+      if (!allowed) {
+        const retryAfterSec = Math.ceil(retryAfterMs / 1000);
+        return res.status(429).json({
+          error: "Please slow down — you can send up to 10 messages per minute.",
+          retryAfterSeconds: retryAfterSec,
+        });
+      }
 
       const guardrailResult = checkPromptInjection(message);
       if (!guardrailResult.passed) {
@@ -128,11 +143,22 @@ export async function registerRoutes(
 
       const updatedSession = await storage.getSession(sessionId);
 
+      logConversation({
+        user_id: clientIp === "unknown" ? "anonymous" : clientIp,
+        session_id: sessionId,
+        prompt: guardrailResult.sanitized || message,
+        response: baristaResponse.message,
+        latency_ms: baristaResponse.latency_ms,
+        tools_used: baristaResponse.toolsUsed,
+        validation_passed: baristaResponse.validationPassed,
+      });
+
       res.json({
         message: baristaResponse.message,
         orderState: updatedSession?.orderState,
         toolsUsed: baristaResponse.toolsUsed,
         validationPassed: baristaResponse.validationPassed,
+        latency_ms: baristaResponse.latency_ms,
       });
     } catch (err) {
       console.error("[chat] error:", err);

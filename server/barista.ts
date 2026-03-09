@@ -268,6 +268,7 @@ export interface BaristaResponse {
   stateUpdates: Partial<OrderState>;
   toolsUsed: string[];
   validationPassed: boolean;
+  latency_ms: number;
 }
 
 export async function runBaristaChat(
@@ -282,10 +283,13 @@ export async function runBaristaChat(
   let finalMessage = "";
   const allStateUpdates: Partial<OrderState> = {};
   const toolsUsed: string[] = [];
+  const interactionStart = Date.now();
 
   let currentMessages = [...messages];
+  let apiCallCount = 0;
 
   while (true) {
+    const callStart = Date.now();
     const response = await client.messages.create({
       model: "claude-sonnet-4-5",
       max_tokens: 1024,
@@ -293,6 +297,9 @@ export async function runBaristaChat(
       tools: TOOLS,
       messages: currentMessages,
     });
+
+    apiCallCount++;
+    console.log(`[barista] API call #${apiCallCount} completed in ${Date.now() - callStart}ms (stop_reason=${response.stop_reason})`);
 
     if (response.stop_reason === "end_turn") {
       finalMessage = response.content
@@ -367,10 +374,14 @@ export async function runBaristaChat(
     }
   }
 
+  const latency_ms = Date.now() - interactionStart;
+  console.log(`[barista] Total interaction: ${latency_ms}ms across ${apiCallCount} API call(s), tools=[${toolsUsed.join(", ") || "none"}]`);
+
   return {
     message: finalMessage,
     stateUpdates: allStateUpdates,
     toolsUsed,
     validationPassed,
+    latency_ms,
   };
 }
