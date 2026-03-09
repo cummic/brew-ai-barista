@@ -1,90 +1,118 @@
 [
   {
-    "id": "VAL_001",
-    "description": "Happy Path - Grand Central Latte",
-    "steps": [
-      {"role": "user", "content": "I'm at Grand Central"},
-      {"role": "user", "content": "Can I get a latte with almond milk?"}
+    "id": "TC-01",
+    "description": "Happy path: WTC latte whole milk no pastry 0% tip — full order submitted",
+    "category": "happy_path",
+    "messages": [
+      "WTC",
+      "latte with whole milk please",
+      "no pastry thanks",
+      "no tip",
+      "yes please charge my card"
     ],
-    "expected_behavior": "Should call get_store_info(grand_central), confirm inventory has almond milk ($0.75 upcharge), and call calculate_total."
+    "expectedTools": ["get_store_info", "calculate_total", "submit_order"]
   },
   {
-    "id": "VAL_002",
-    "description": "Inventory Restriction - Penn Station Cortado",
-    "steps": [
-      {"role": "user", "content": "I'm at Penn Station"},
-      {"role": "user", "content": "I'll take a cortado."}
+    "id": "TC-02",
+    "description": "Happy path: Grand Central cortado almond milk chocolate croissant 10% tip",
+    "category": "happy_path",
+    "messages": [
+      "Grand Central",
+      "cortado with almond milk",
+      "yes I'll take a chocolate croissant",
+      "10 percent tip",
+      "yes charge it"
     ],
-    "expected_behavior": "Should apologize and say cortados aren't available at Penn (per inventory), then suggest a latte."
+    "expectedTools": ["get_store_info", "calculate_total", "submit_order"]
   },
   {
-    "id": "VAL_003",
-    "description": "Inventory Restriction - Penn Station Almond Milk",
-    "steps": [
-      {"role": "user", "content": "Hey, I'm at Penn Station. Can I get a latte with almond milk?"}
+    "id": "TC-03",
+    "description": "Happy path: Penn Station latte 2% milk croissant 0% tip",
+    "category": "happy_path",
+    "messages": [
+      "Penn Station",
+      "latte with 2% milk",
+      "yes a croissant please",
+      "no tip",
+      "yes go ahead"
     ],
-    "expected_behavior": "Should call get_store_info(penn), identify that almond milk is NOT in Penn inventory, and offer whole or 2% instead."
+    "expectedTools": ["get_store_info", "calculate_total", "submit_order"]
   },
   {
-    "id": "VAL_004",
-    "description": "Location Identification - Ambiguity",
-    "steps": [
-      {"role": "user", "content": "I'm at the train station."}
+    "id": "TC-04",
+    "description": "Inventory restriction: cortado not stocked at Penn Station — order must not be submitted",
+    "category": "inventory_restriction",
+    "messages": [
+      "Penn Station",
+      "I'd like a cortado please"
     ],
-    "expected_behavior": "Should refuse to move forward and re-ask for the specific name (Penn, GCT, or WTC) per the 'LOCATION RULE'."
+    "expectedTools": ["get_store_info"],
+    "expectNoSubmitOrder": true
   },
   {
-    "id": "VAL_005",
-    "description": "Pricing Accuracy - WTC Chocolate Croissant",
-    "steps": [
-      {"role": "user", "content": "World Trade Center"},
-      {"role": "user", "content": "Just a chocolate croissant, no drink."}
+    "id": "TC-05",
+    "description": "Inventory restriction: almond milk not stocked at Penn Station — order must not be submitted",
+    "category": "inventory_restriction",
+    "messages": [
+      "Penn Station",
+      "latte with almond milk please"
     ],
-    "expected_behavior": "Must call calculate_total. Total should be $4.00 + 8.875% tax ($4.36 before tip)."
+    "expectedTools": ["get_store_info"],
+    "expectNoSubmitOrder": true
   },
   {
-    "id": "VAL_006",
-    "description": "Inventory Restriction - Penn Station Pastry",
-    "steps": [
-      {"role": "user", "content": "Penn Station"},
-      {"role": "user", "content": "Do you have chocolate croissants?"}
+    "id": "TC-06",
+    "description": "Inventory restriction: chocolate croissant not stocked at Penn Station — order must not be submitted",
+    "category": "inventory_restriction",
+    "messages": [
+      "Penn Station",
+      "latte with whole milk",
+      "I'll have a chocolate croissant"
     ],
-    "expected_behavior": "Should check Penn inventory, see only 'croissant' is available, and offer the plain one instead of chocolate."
+    "expectedTools": ["get_store_info"],
+    "expectNoSubmitOrder": true
   },
   {
-    "id": "VAL_007",
-    "description": "Tip Handling - Dollar to Percent Conversion",
-    "steps": [
-      {"role": "user", "content": "Grand Central, latte, whole milk, no pastry."},
-      {"role": "user", "content": "Just add a dollar for tip."}
+    "id": "TC-07",
+    "description": "Location ambiguity: 'train station' is not a specific location — get_store_info must not be called",
+    "category": "location_ambiguity",
+    "messages": [
+      "I'm at the train station, can I order?"
     ],
-    "expected_behavior": "Should round the dollar amount to 10% (the closest tip option) and call calculate_total with tip: 10."
+    "expectedTools": [],
+    "expectNoStoreInfo": true
   },
   {
-    "role": "VAL_008",
-    "description": "Multi-turn Correction",
-    "steps": [
-      {"role": "user", "content": "I'm at Grand Central"},
-      {"role": "user", "content": "Actually, wait, I'm at the World Trade Center."},
-      {"role": "user", "content": "What are your hours?"}
+    "id": "TC-08",
+    "description": "Location ambiguity: 'downtown transit hub' is not specific — get_store_info must not be called",
+    "category": "location_ambiguity",
+    "messages": [
+      "I'm downtown near the transit hub"
     ],
-    "expected_behavior": "Should update location to 'wtc' and quote the WTC hours (7:00 PM close) instead of GCT (8:00 PM close)."
+    "expectedTools": [],
+    "expectNoStoreInfo": true
   },
   {
-    "id": "VAL_009",
-    "description": "Guardrail - Off Topic",
-    "steps": [
-      {"role": "user", "content": "WTC"},
-      {"role": "user", "content": "Who do you think will win the game tonight?"}
+    "id": "TC-09",
+    "description": "Price validation: almond latte + croissant + 10% tip at WTC — price must come from calculate_total",
+    "category": "price_validation",
+    "messages": [
+      "WTC",
+      "latte with almond milk",
+      "yes a croissant please",
+      "10% tip",
+      "yes charge my card"
     ],
-    "expected_behavior": "Should briefly/warmly redirect back to the coffee order without answering the sports question."
+    "expectedTools": ["get_store_info", "calculate_total", "submit_order"]
   },
   {
-    "id": "VAL_010",
-    "description": "Order Finalization - Correct Pickup Location",
-    "steps": [
-      {"role": "user", "content": "Penn Station, latte, 2% milk, no pastry, 10% tip, go ahead and charge me."}
+    "id": "TC-10",
+    "description": "Off-topic guardrail: non-coffee question redirected — no tools should be called",
+    "category": "guardrail",
+    "messages": [
+      "Can you help me figure out the subway map?"
     ],
-    "expected_behavior": "Must call submit_order and specifically mention 'at Penn Station' in the final confirmation message."
+    "expectedTools": [],
+    "expectNoStoreInfo": true
   }
 ]
