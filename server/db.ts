@@ -95,6 +95,8 @@ export async function insertOrder(params: {
 }): Promise<InsertOrderResult> {
   const supabase = getSupabase();
 
+  const environment = process.env.NODE_ENV === "production" ? "production" : "development";
+
   const { data: order, error: orderError } = await supabase
     .from("orders")
     .insert({
@@ -103,6 +105,7 @@ export async function insertOrder(params: {
       location_id: params.locationId,
       total_price: params.orderTotal,
       status: "pending",
+      environment,
     })
     .select("id")
     .single();
