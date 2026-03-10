@@ -39,6 +39,18 @@ async function runTestCase(
   const allToolsUsed: string[] = [];
   let priceValidationFailed = false;
 
+  // Bootstrap: Claude always greets and asks for the customer's name first.
+  // Send a fixed name so every test case starts from a consistent post-greeting state.
+  history.push({ role: "user", content: "Eval" });
+  try {
+    const bootstrap = await runBaristaChat(history, orderState);
+    history.push({ role: "assistant", content: bootstrap.message });
+    allToolsUsed.push(...bootstrap.toolsUsed);
+    orderState = { ...orderState, ...bootstrap.stateUpdates };
+  } catch (err) {
+    return { pass: false, reason: `Bootstrap (name step) threw: ${err}`, toolsUsed: allToolsUsed };
+  }
+
   for (const userMsg of tc.messages) {
     history.push({ role: "user", content: userMsg });
 
