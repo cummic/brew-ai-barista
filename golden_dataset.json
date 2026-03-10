@@ -1,8 +1,10 @@
 [
   {
     "id": "TC-01",
-    "description": "Happy path: WTC latte whole milk no pastry 0% tip — full order submitted",
+    "description": "Happy path: wtc latte whole milk no pastry 0% tip — full order submitted",
     "category": "happy_path",
+    "environment": "development",
+    "expectedDbTable": "orders",
     "messages": [
       "WTC",
       "latte with whole milk please",
@@ -14,8 +16,10 @@
   },
   {
     "id": "TC-02",
-    "description": "Happy path: Grand Central cortado almond milk chocolate croissant 10% tip",
+    "description": "Happy path: grand_central cortado almond milk chocolate_croissant 10% tip",
     "category": "happy_path",
+    "environment": "development",
+    "expectedDbTable": "orders",
     "messages": [
       "Grand Central",
       "cortado with almond milk",
@@ -27,8 +31,10 @@
   },
   {
     "id": "TC-03",
-    "description": "Happy path: Penn Station latte 2% milk croissant 0% tip",
+    "description": "Happy path: penn latte 2pct milk croissant 0% tip",
     "category": "happy_path",
+    "environment": "development",
+    "expectedDbTable": "orders",
     "messages": [
       "Penn Station",
       "latte with 2% milk",
@@ -40,8 +46,9 @@
   },
   {
     "id": "TC-04",
-    "description": "Inventory restriction: cortado not stocked at Penn Station — order must not be submitted",
+    "description": "Inventory restriction: cortado not stocked at penn — order must not be submitted",
     "category": "inventory_restriction",
+    "environment": "development",
     "messages": [
       "Penn Station",
       "I'd like a cortado please"
@@ -51,8 +58,9 @@
   },
   {
     "id": "TC-05",
-    "description": "Inventory restriction: almond milk not stocked at Penn Station — order must not be submitted",
+    "description": "Inventory restriction: almond milk not stocked at penn — order must not be submitted",
     "category": "inventory_restriction",
+    "environment": "development",
     "messages": [
       "Penn Station",
       "latte with almond milk please"
@@ -62,8 +70,9 @@
   },
   {
     "id": "TC-06",
-    "description": "Inventory restriction: chocolate croissant not stocked at Penn Station — order must not be submitted",
+    "description": "Inventory restriction: chocolate_croissant not stocked at penn — order must not be submitted",
     "category": "inventory_restriction",
+    "environment": "development",
     "messages": [
       "Penn Station",
       "latte with whole milk",
@@ -76,6 +85,7 @@
     "id": "TC-07",
     "description": "Location ambiguity: 'train station' is not a specific location — get_store_info must not be called",
     "category": "location_ambiguity",
+    "environment": "development",
     "messages": [
       "I'm at the train station, can I order?"
     ],
@@ -86,6 +96,7 @@
     "id": "TC-08",
     "description": "Location ambiguity: 'downtown transit hub' is not specific — get_store_info must not be called",
     "category": "location_ambiguity",
+    "environment": "development",
     "messages": [
       "I'm downtown near the transit hub"
     ],
@@ -94,8 +105,9 @@
   },
   {
     "id": "TC-09",
-    "description": "Price validation: almond latte + croissant + 10% tip at WTC — price must come from calculate_total",
+    "description": "Price validation: almond latte + croissant + 10% tip at wtc — price must come from calculate_total",
     "category": "price_validation",
+    "environment": "development",
     "messages": [
       "WTC",
       "latte with almond milk",
@@ -109,6 +121,7 @@
     "id": "TC-10",
     "description": "Off-topic guardrail: non-coffee question redirected — no tools should be called",
     "category": "guardrail",
+    "environment": "development",
     "messages": [
       "Can you help me figure out the subway map?"
     ],
@@ -117,8 +130,9 @@
   },
   {
     "id": "TC-11",
-    "description": "Menu happy path: location confirmed first (WTC), then price list requested — get_store_info must be called, no order placed",
+    "description": "Menu happy path: location confirmed first (wtc), then price list requested — get_store_info must be called, no order placed",
     "category": "menu_price_list",
+    "environment": "development",
     "messages": [
       "WTC",
       "what's on the menu?"
@@ -128,8 +142,9 @@
   },
   {
     "id": "TC-12",
-    "description": "Menu happy path: Penn Station price list shows limited inventory only — get_store_info called, no order placed",
+    "description": "Menu happy path: penn price list shows limited inventory only — get_store_info called, no order placed",
     "category": "menu_price_list",
+    "environment": "development",
     "messages": [
       "Penn Station",
       "can I see the price list?"
@@ -141,6 +156,7 @@
     "id": "TC-13",
     "description": "Menu negative: price list requested before location stated — get_store_info must NOT be called",
     "category": "menu_price_list",
+    "environment": "development",
     "messages": [
       "what's on the menu?"
     ],
@@ -151,6 +167,7 @@
     "id": "TC-14",
     "description": "Menu negative: 'all locations' menu request before location confirmed — get_store_info must NOT be called",
     "category": "menu_price_list",
+    "environment": "development",
     "messages": [
       "show me the menu for all three locations"
     ],
@@ -161,10 +178,30 @@
     "id": "TC-15",
     "description": "Menu negative: ambiguous location given with price list request — get_store_info must NOT be called",
     "category": "menu_price_list",
+    "environment": "development",
     "messages": [
       "I'm at the station, what's on the price list?"
     ],
     "expectedTools": [],
     "expectNoStoreInfo": true
+  },
+  {
+    "id": "TC-16",
+    "description": "Inventory restriction: cortado is_available=false at grand_central via location_inventory — AI must decline and NOT call submit_order. NOTE: requires location_inventory table with (location_id='grand_central', product_id='cortado', is_available=false) and corresponding get_store_info logic.",
+    "category": "inventory_restriction",
+    "environment": "development",
+    "setup": {
+      "location_inventory": {
+        "location_id": "grand_central",
+        "product_id": "cortado",
+        "is_available": false
+      }
+    },
+    "messages": [
+      "Grand Central",
+      "I'd like a cortado please"
+    ],
+    "expectedTools": ["get_store_info"],
+    "expectNoSubmitOrder": true
   }
 ]
