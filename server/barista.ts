@@ -414,24 +414,12 @@ export async function runBaristaChat(
   let currentMessages = [...messages];
   let apiCallCount = 0;
 
-  // P3: Prompt caching — static system prompt and tools are cached (ephemeral, 5-min TTL).
-  // The dynamic session state and location blocks are appended uncached since they vary per turn.
+  // P3: Prompt caching — static system prompt is cached (ephemeral, 5-min TTL).
+  // The dynamic location block is appended uncached since it varies per turn.
   const effectiveInventory = orderState.locationInventory;
   const systemBlocks: Array<{ type: "text"; text: string; cache_control?: { type: "ephemeral" } }> = [
     { type: "text", text: SYSTEM_PROMPT, cache_control: { type: "ephemeral" } },
   ];
-
-  // Inject current session state so Claude never re-calls tools for already-captured values.
-  const sessionStateLines: string[] = [];
-  if (orderState.userName) {
-    sessionStateLines.push(`- Customer name already captured as "${orderState.userName}". DO NOT call capture_user_name again under any circumstances.`);
-  }
-  if (sessionStateLines.length > 0) {
-    systemBlocks.push({
-      type: "text",
-      text: `\n\nSESSION STATE (already recorded — do not re-capture):\n${sessionStateLines.join("\n")}`,
-    });
-  }
 
   if (effectiveInventory) {
     systemBlocks.push({
@@ -446,9 +434,18 @@ export async function runBaristaChat(
     });
   }
 
-  // Cache the tool definitions alongside the system prompt (marked on the last tool).
-  const cachedTools = TOOLS.map((t, i) =>
-    i === TOOLS.length - 1 ? { ...t, cache_control: { type: "ephemeral" as const } } : t
+  // Remove tools that are no longer needed based on current order state.
+  // This prevents Claude from re-calling one-shot tools like capture_user_name or get_store_info
+  // after those values are already captured, without changing the system prompt (which would bust the cache).
+  const effectiveToolList = TOOLS.filter((t) => {
+    if (t.name === "capture_user_name" && orderState.userName) return false;
+    if (t.name === "get_store_info" && orderState.locationInventory) return false;
+    return true;
+  });
+
+  // Mark cache_control on the last tool so the tool list is cached alongside the system prompt.
+  const effectiveTools = effectiveToolList.map((t, i) =>
+    i === effectiveToolList.length - 1 ? { ...t, cache_control: { type: "ephemeral" as const } } : t
   );
 
   while (true) {
@@ -465,7 +462,7 @@ export async function runBaristaChat(
             model: "claude-haiku-4-5",
             max_tokens: 1024,
             system: systemBlocks as any,
-            tools: cachedTools as any,
+            tools: effectiveTools as any,
             messages: currentMessages,
           },
           { headers: { "anthropic-beta": "prompt-caching-2024-07-31" } }
