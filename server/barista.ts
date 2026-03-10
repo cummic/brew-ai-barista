@@ -79,11 +79,12 @@ ORDER FLOW (move through this naturally):
 2. Once they give their name, call capture_user_name. Then greet them by name and ask which location they're at.
 3. Confirm they want a ${drinkNames} and clarify milk if they haven't said.
 4. Offer a pastry once in a natural way.
-5. Before mentioning any price, call calculate_total. Then share the total and ask if they want to tip.
+5. Ask for their tip preference (0% or 10%). Once you have drink, milk, pastry (or "no pastry"), AND tip all confirmed, call calculate_total ONCE with all final values. Share the total.
 6. Confirm the card on file will be charged and ask if it's okay to go ahead.
 7. Call submit_order, tell them to look for their name at the pickup area and include the specific location name (e.g. "at Penn Station", "at Grand Central", "at WTC"). Give an approximate pickup time. No confirmation numbers.
 
 TOOL RULES:
+- Call calculate_total EXACTLY ONCE per order — only after drink, milk, pastry choice, AND tip are all confirmed. Never call it mid-conversation as a preview or intermediate step.
 - ALWAYS call calculate_total before saying any price. Never invent a number.
 - Call get_store_info once you know the location.
 - Call submit_order only after the customer confirms they're ready to pay.
@@ -256,32 +257,26 @@ async function handleToolCall(
     const pastryId = toolInput.pastry as string;
     const tip = toolInput.tip as number;
 
-    const currentLocation = orderState.location as string | null;
-    if (currentLocation) {
-      const storeInfo = await fetchStoreInfo(currentLocation, data);
-      if (storeInfo) {
-        const availableDrinkIds = storeInfo.inventory.drinks.map((d) => d.id);
-        const availableMilkIds = storeInfo.inventory.milk_options.map((m) => m.id);
-        const availablePastryIds = storeInfo.inventory.pastries.map((p) => p.id);
+    // P1: validate against cached locationInventory — no DB round-trip needed
+    const cachedInventory = orderState.locationInventory;
+    if (cachedInventory) {
+      const unavailable: string[] = [];
+      if (!cachedInventory.drinks.includes(drinkId)) unavailable.push(`drink "${drinkId}"`);
+      if (!cachedInventory.milk.includes(milkModifierId)) unavailable.push(`milk "${milkModifierId}"`);
+      if (pastryId !== "none" && !cachedInventory.pastries.includes(pastryId)) unavailable.push(`pastry "${pastryId}"`);
 
-        const unavailable: string[] = [];
-        if (!availableDrinkIds.includes(drinkId)) unavailable.push(`drink "${drinkId}"`);
-        if (!availableMilkIds.includes(milkModifierId)) unavailable.push(`milk "${milkModifierId}"`);
-        if (pastryId !== "none" && !availablePastryIds.includes(pastryId)) unavailable.push(`pastry "${pastryId}"`);
-
-        if (unavailable.length > 0) {
-          console.warn(`[barista] calculate_total blocked — unavailable at ${currentLocation}: ${unavailable.join(", ")}`);
-          return {
-            result: {
-              error: "Cannot calculate total: some items are not available at this location.",
-              unavailable_items: unavailable,
-              available_drinks: availableDrinkIds,
-              available_milk_options: availableMilkIds,
-              available_pastries: availablePastryIds,
-            },
-            stateUpdates: {},
-          };
-        }
+      if (unavailable.length > 0) {
+        console.warn(`[barista] calculate_total blocked — unavailable at ${orderState.location}: ${unavailable.join(", ")}`);
+        return {
+          result: {
+            error: "Cannot calculate total: some items are not available at this location.",
+            unavailable_items: unavailable,
+            available_drinks: cachedInventory.drinks,
+            available_milk_options: cachedInventory.milk,
+            available_pastries: cachedInventory.pastries,
+          },
+          stateUpdates: {},
+        };
       }
     }
 
@@ -396,30 +391,52 @@ export async function runBaristaChat(
   let currentMessages = [...messages];
   let apiCallCount = 0;
 
+  // P3: Prompt caching — static system prompt and tools are cached (ephemeral, 5-min TTL).
+  // The dynamic location block is appended uncached since it varies per location.
   const effectiveInventory = orderState.locationInventory;
-  const dynamicSystem = effectiveInventory
-    ? SYSTEM_PROMPT +
-      `\n\n⚠️ LOCATION LOCKED — ${orderState.location}:\n` +
-      `The customer is at ${orderState.location}. The ONLY items stocked here are:\n` +
-      `- Drinks: ${effectiveInventory.drinks.join(", ")}\n` +
-      `- Milk options: ${effectiveInventory.milk.join(", ")}\n` +
-      `- Pastries: ${effectiveInventory.pastries.join(", ")}\n` +
-      `If the customer asks for ANYTHING not in these lists, politely decline it and suggest only what IS listed above. Never accept or confirm an unavailable item.`
-    : SYSTEM_PROMPT;
+  const systemBlocks: Array<{ type: "text"; text: string; cache_control?: { type: "ephemeral" } }> = [
+    { type: "text", text: SYSTEM_PROMPT, cache_control: { type: "ephemeral" } },
+  ];
+  if (effectiveInventory) {
+    systemBlocks.push({
+      type: "text",
+      text:
+        `\n\n⚠️ LOCATION LOCKED — ${orderState.location}:\n` +
+        `The customer is at ${orderState.location}. The ONLY items stocked here are:\n` +
+        `- Drinks: ${effectiveInventory.drinks.join(", ")}\n` +
+        `- Milk options: ${effectiveInventory.milk.join(", ")}\n` +
+        `- Pastries: ${effectiveInventory.pastries.join(", ")}\n` +
+        `If the customer asks for ANYTHING not in these lists, politely decline it and suggest only what IS listed above. Never accept or confirm an unavailable item.`,
+    });
+  }
+
+  // Cache the tool definitions alongside the system prompt (marked on the last tool).
+  const cachedTools = TOOLS.map((t, i) =>
+    i === TOOLS.length - 1 ? { ...t, cache_control: { type: "ephemeral" as const } } : t
+  );
 
   while (true) {
     const callStart = Date.now();
-    const response = await client.messages.create({
-      model: "claude-sonnet-4-5",
-      max_tokens: 1024,
-      system: dynamicSystem,
-      tools: TOOLS,
-      messages: currentMessages,
-    });
+    const response = await client.messages.create(
+      {
+        model: "claude-sonnet-4-5",
+        max_tokens: 1024,
+        system: systemBlocks as any,
+        tools: cachedTools as any,
+        messages: currentMessages,
+      },
+      { headers: { "anthropic-beta": "prompt-caching-2024-07-31" } }
+    );
 
     apiCallCount++;
+    const usage = response.usage as any;
+    const cacheNote = usage?.cache_read_input_tokens
+      ? ` cache_read=${usage.cache_read_input_tokens} cache_created=${usage.cache_creation_input_tokens ?? 0}`
+      : usage?.cache_creation_input_tokens
+      ? ` cache_created=${usage.cache_creation_input_tokens}`
+      : "";
     console.log(
-      `[barista] API call #${apiCallCount} completed in ${Date.now() - callStart}ms (stop_reason=${response.stop_reason})`
+      `[barista] API call #${apiCallCount} completed in ${Date.now() - callStart}ms (stop_reason=${response.stop_reason}${cacheNote})`
     );
 
     if (response.stop_reason === "end_turn") {
