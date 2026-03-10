@@ -78,6 +78,58 @@ export async function loadMenuData(): Promise<MenuData> {
   };
 }
 
+export interface StoreInfoResult {
+  id: string;
+  name: string;
+  address: string;
+  status: string;
+  hours: string;
+  inventory: {
+    drinks: { id: string; name: string; base_price: number }[];
+    milk_options: { id: string; name: string; upcharge: number }[];
+    pastries: { id: string; name: string; price: number }[];
+  };
+}
+
+export async function fetchStoreInfo(
+  locationId: string,
+  data: MenuData
+): Promise<StoreInfoResult | null> {
+  const location = data.locations.find((l) => l.id === locationId);
+  if (!location) return null;
+
+  const supabase = getSupabase();
+
+  const { data: unavailableRows, error } = await supabase
+    .from("location_inventory")
+    .select("product_id")
+    .eq("location_id", locationId)
+    .eq("is_available", false);
+
+  if (error) {
+    console.warn(`[db] location_inventory query failed for ${locationId}:`, error.message);
+  }
+
+  const unavailableIds = new Set((unavailableRows ?? []).map((r: { product_id: string }) => r.product_id));
+
+  const drinks = data.products.filter((p) => p.category === "drink" && !unavailableIds.has(p.id));
+  const pastries = data.products.filter((p) => p.category === "pastry" && !unavailableIds.has(p.id));
+  const milkModifiers = data.modifiers.filter((m) => m.modifier_group_id === "milk_options");
+
+  return {
+    id: location.id,
+    name: location.name,
+    address: location.address,
+    status: location.status,
+    hours: location.hours,
+    inventory: {
+      drinks: drinks.map((d) => ({ id: d.id, name: d.name, base_price: d.base_price })),
+      milk_options: milkModifiers.map((m) => ({ id: m.id, name: m.name, upcharge: m.upcharge })),
+      pastries: pastries.map((p) => ({ id: p.id, name: p.name, price: p.base_price })),
+    },
+  };
+}
+
 export interface InsertOrderResult {
   orderId: string;
 }

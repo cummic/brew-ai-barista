@@ -1,6 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import type { OrderState } from "@shared/schema";
-import { loadMenuData, insertOrder, type MenuData } from "./db";
+import { loadMenuData, insertOrder, fetchStoreInfo, type MenuData } from "./db";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -235,27 +235,6 @@ export function calculateTotal(
   };
 }
 
-export function getStoreInfo(locationId: string, data: MenuData) {
-  const location = data.locations.find((l) => l.id === locationId);
-  if (!location) return null;
-
-  const drinks = data.products.filter((p) => p.category === "drink");
-  const pastries = data.products.filter((p) => p.category === "pastry");
-  const milkModifiers = data.modifiers.filter((m) => m.modifier_group_id === "milk_options");
-
-  return {
-    id: location.id,
-    name: location.name,
-    address: location.address,
-    status: location.status,
-    hours: location.hours,
-    inventory: {
-      drinks: drinks.map((d) => ({ id: d.id, name: d.name, base_price: d.base_price })),
-      milk_options: milkModifiers.map((m) => ({ id: m.id, name: m.name, upcharge: m.upcharge })),
-      pastries: pastries.map((p) => ({ id: p.id, name: p.name, price: p.base_price })),
-    },
-  };
-}
 
 async function handleToolCall(
   toolName: string,
@@ -290,7 +269,7 @@ async function handleToolCall(
 
   if (toolName === "get_store_info") {
     const locationId = toolInput.location_id as string;
-    const result = getStoreInfo(locationId, data);
+    const result = await fetchStoreInfo(locationId, data);
 
     if (result) {
       stateUpdates.location = locationId as any;
