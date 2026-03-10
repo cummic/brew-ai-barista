@@ -77,8 +77,13 @@ const LOCATION_LABELS: Record<string, string> = {
 
 const MILK_LABELS: Record<string, string> = {
   whole: "Whole Milk",
-  "2%": "2% Milk",
+  "2pct": "2% Milk",
   almond: "Almond Milk",
+};
+
+const DRINK_LABELS: Record<string, string> = {
+  latte: "Latte",
+  cortado: "Cortado",
 };
 
 const PASTRY_LABELS: Record<string, string> = {
@@ -205,7 +210,7 @@ function OrderPanel({ orderState }: { orderState: OrderState }) {
           <OrderItem
             icon={<Coffee className="h-3.5 w-3.5" />}
             label="Drink"
-            value={orderState.milkType ? "Latte" : null}
+            value={orderState.drink ? (DRINK_LABELS[orderState.drink] ?? orderState.drink) : null}
           />
           <OrderItem
             icon={<Milk className="h-3.5 w-3.5" />}
