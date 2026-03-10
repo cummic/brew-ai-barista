@@ -1,11 +1,73 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Send, RotateCcw, Coffee, MapPin, Milk, Croissant, CreditCard, CheckCircle2, Clock, ChevronDown, ChevronUp } from "lucide-react";
 import type { OrderState, ChatMessage } from "@shared/schema";
+
+async function callChatAPI(
+  sessionId: string,
+  message: string,
+  onChunk: (text: string) => void
+): Promise<{ message: string; orderState: any; toolsUsed: string[]; validationPassed: boolean }> {
+  const response = await fetch("/api/chat", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ sessionId, message }),
+  });
+
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({ error: "Unknown error" }));
+    const error: any = new Error(err.error || "Request failed");
+    error.blocked = err.blocked;
+    error.status = response.status;
+    throw error;
+  }
+
+  const contentType = response.headers.get("content-type") || "";
+
+  // Ambiguity check returns plain JSON; SSE returns text/event-stream
+  if (!contentType.includes("text/event-stream")) {
+    return response.json();
+  }
+
+  return new Promise((resolve, reject) => {
+    const reader = response.body!.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+    let finalData: any = null;
+
+    const read = () => {
+      reader.read().then(({ done, value }) => {
+        if (done) {
+          resolve(finalData ?? { message: "", orderState: null, toolsUsed: [], validationPassed: true });
+          return;
+        }
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() || "";
+        for (const line of lines) {
+          if (!line.startsWith("data: ")) continue;
+          try {
+            const event = JSON.parse(line.slice(6));
+            if (event.type === "chunk") {
+              onChunk(event.text);
+            } else if (event.type === "done") {
+              finalData = event;
+            } else if (event.type === "error") {
+              reject(new Error(event.message || "Streaming error"));
+              return;
+            }
+          } catch {}
+        }
+        read();
+      }).catch(reject);
+    };
+    read();
+  });
+}
 
 const LOCATION_LABELS: Record<string, string> = {
   wtc: "World Trade Center",
@@ -193,9 +255,10 @@ export default function ChatPage() {
   const [orderState, setOrderState] = useState<OrderState | null>(null);
   const [inputValue, setInputValue] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+  const [streamingContent, setStreamingContent] = useState<string | null>(null);
+  const [isSending, setIsSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const queryClient = useQueryClient();
 
   const createSession = useMutation({
     mutationFn: () => apiRequest("POST", "/api/session").then((r) => r.json()),
@@ -207,60 +270,26 @@ export default function ChatPage() {
     },
   });
 
-  const sendMessage = useMutation({
-    mutationFn: (msg: string) =>
-      apiRequest("POST", "/api/chat", {
-        sessionId,
-        message: msg,
-      }).then((r) => r.json()),
-    onSuccess: (data: any) => {
-      const assistantMsg: ChatMessage = {
-        role: "assistant",
-        content: data.message,
-        timestamp: new Date().toISOString(),
-      };
-      setMessages((prev) => [...prev, assistantMsg]);
-      setOrderState(data.orderState);
-      setIsTyping(false);
-    },
-    onError: (err: any) => {
-      setIsTyping(false);
-      let errorContent = "Something went wrong. Please try again.";
-      if (err?.blocked) {
-        errorContent = "I noticed something unusual in your message. Let's keep things on track — what would you like to order?";
-      }
-      const errMsg: ChatMessage = {
-        role: "assistant",
-        content: errorContent,
-        timestamp: new Date().toISOString(),
-      };
-      setMessages((prev) => [...prev, errMsg]);
-    },
-  });
-
   const sendInitialGreeting = useCallback(async (sid: string) => {
     setIsTyping(true);
+    setStreamingContent("");
     try {
-      const data = await apiRequest("POST", "/api/chat", {
-        sessionId: sid,
-        message: "Hello",
-      }).then((r) => r.json()) as any;
-      const content = data.message || "Hi! I'm Brew, your AI barista. Which location are you at — WTC, Penn Station, or Grand Central?";
-      const assistantMsg: ChatMessage = {
-        role: "assistant",
-        content,
-        timestamp: new Date().toISOString(),
-      };
-      setMessages([assistantMsg]);
+      let streamed = "";
+      const data = await callChatAPI(sid, "Hello", (chunk) => {
+        streamed += chunk;
+        setStreamingContent(streamed);
+      });
+      const content = data.message || streamed || "Hi! I'm Brew, your AI barista. Which location are you at — WTC, Penn Station, or Grand Central?";
+      setStreamingContent(null);
+      setMessages([{ role: "assistant", content, timestamp: new Date().toISOString() }]);
       if (data.orderState) setOrderState(data.orderState);
-    } catch (e) {
-      console.error(e);
-      const fallbackMsg: ChatMessage = {
+    } catch {
+      setStreamingContent(null);
+      setMessages([{
         role: "assistant",
         content: "Hi! I'm Brew, your AI barista. Which location are you at — WTC, Penn Station, or Grand Central?",
         timestamp: new Date().toISOString(),
-      };
-      setMessages([fallbackMsg]);
+      }]);
     } finally {
       setIsTyping(false);
     }
@@ -272,11 +301,11 @@ export default function ChatPage() {
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, isTyping]);
+  }, [messages, isTyping, streamingContent]);
 
-  const handleSend = useCallback((text?: string) => {
+  const handleSend = useCallback(async (text?: string) => {
     const msg = (text || inputValue).trim();
-    if (!msg || !sessionId || sendMessage.isPending) return;
+    if (!msg || !sessionId || isSending) return;
 
     const userMsg: ChatMessage = {
       role: "user",
@@ -285,9 +314,32 @@ export default function ChatPage() {
     };
     setMessages((prev) => [...prev, userMsg]);
     setInputValue("");
+    setIsSending(true);
     setIsTyping(true);
-    sendMessage.mutate(msg);
-  }, [inputValue, sessionId, sendMessage]);
+    setStreamingContent("");
+
+    try {
+      let streamed = "";
+      const data = await callChatAPI(sessionId, msg, (chunk) => {
+        streamed += chunk;
+        setStreamingContent(streamed);
+        setIsTyping(false);
+      });
+      const content = data.message || streamed;
+      setStreamingContent(null);
+      setMessages((prev) => [...prev, { role: "assistant", content, timestamp: new Date().toISOString() }]);
+      if (data.orderState) setOrderState(data.orderState);
+    } catch (err: any) {
+      setStreamingContent(null);
+      const errorContent = err?.blocked
+        ? "I noticed something unusual in your message. Let's keep things on track — what would you like to order?"
+        : "Something went wrong. Please try again.";
+      setMessages((prev) => [...prev, { role: "assistant", content: errorContent, timestamp: new Date().toISOString() }]);
+    } finally {
+      setIsSending(false);
+      setIsTyping(false);
+    }
+  }, [inputValue, sessionId, isSending]);
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -302,6 +354,8 @@ export default function ChatPage() {
       setMessages([]);
       setOrderState(null);
       setIsTyping(false);
+      setStreamingContent(null);
+      setIsSending(false);
       createSession.mutate();
     });
   }, [sessionId, createSession]);
@@ -349,7 +403,29 @@ export default function ChatPage() {
           <MessageBubble key={idx} message={msg} />
         ))}
 
-        {isTyping && <TypingIndicator />}
+        {isTyping && streamingContent === "" && <TypingIndicator />}
+
+        {streamingContent !== null && streamingContent !== "" && (
+          <div className="flex items-end gap-2 px-4 py-1 flex-row">
+            <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm">
+              <Coffee className="h-4 w-4" />
+            </div>
+            <div className="flex flex-col gap-1 max-w-[85%] items-start">
+              <div
+                className="rounded-2xl rounded-bl-sm bg-card border border-card-border text-card-foreground px-4 py-2.5 text-sm leading-relaxed shadow-sm"
+                data-testid="message-streaming"
+              >
+                {streamingContent.split("\n").map((line, i, arr) => (
+                  <span key={i}>
+                    {line}
+                    {i < arr.length - 1 && <br />}
+                  </span>
+                ))}
+                <span className="inline-block w-0.5 h-3.5 bg-primary ml-0.5 animate-pulse align-middle" />
+              </div>
+            </div>
+          </div>
+        )}
 
         <div ref={messagesEndRef} />
       </div>
@@ -367,13 +443,13 @@ export default function ChatPage() {
               placeholder="Type a message..."
               className="min-h-[44px] max-h-28 resize-none rounded-2xl border-border bg-background text-sm focus-visible:ring-1 focus-visible:ring-primary"
               rows={1}
-              disabled={isTyping || !sessionId}
+              disabled={isSending || !sessionId}
               data-testid="input-chat-message"
             />
             <Button
               size="icon"
               onClick={() => handleSend()}
-              disabled={!inputValue.trim() || isTyping || !sessionId}
+              disabled={!inputValue.trim() || isSending || !sessionId}
               data-testid="button-send-message"
               className="flex-shrink-0 rounded-full"
             >

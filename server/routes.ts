@@ -87,8 +87,7 @@ export async function registerRoutes(
       };
       await storage.addMessage(sessionId, userMessage);
 
-      // Code-level location ambiguity check: if no location is confirmed yet and
-      // the user's message contains generic transit terms, intercept before Claude.
+      // Code-level location ambiguity check — fires before SSE headers are set.
       if (!session.orderState.location) {
         const ambiguousTerms = /\b(station|stations|train|terminal|transit|hub|depot|downtown|the city)\b/i;
         const exactLocation = /\b(wtc|world trade|penn station|penn|grand central|grand central terminal)\b/i;
@@ -116,7 +115,29 @@ export async function registerRoutes(
         content: m.content,
       }));
 
-      const baristaResponse = await runBaristaChat(conversationHistory, session!.orderState);
+      // P4: Switch to SSE streaming. All errors past this point are sent as SSE error events.
+      res.setHeader("Content-Type", "text/event-stream");
+      res.setHeader("Cache-Control", "no-cache");
+      res.setHeader("Connection", "keep-alive");
+      res.flushHeaders();
+
+      const sendEvent = (data: object) => {
+        res.write(`data: ${JSON.stringify(data)}\n\n`);
+      };
+
+      const onChunk = (text: string) => {
+        sendEvent({ type: "chunk", text });
+      };
+
+      let baristaResponse;
+      try {
+        baristaResponse = await runBaristaChat(conversationHistory, session!.orderState, onChunk);
+      } catch (err: any) {
+        console.error("[chat] barista error:", err);
+        sendEvent({ type: "error", message: "AI service error. Please try again." });
+        res.end();
+        return;
+      }
 
       if (!baristaResponse.validationPassed) {
         console.warn(`[routes] Output validation failed for session ${sessionId}`);
@@ -153,16 +174,20 @@ export async function registerRoutes(
         validation_passed: baristaResponse.validationPassed,
       });
 
-      res.json({
+      sendEvent({
+        type: "done",
         message: baristaResponse.message,
         orderState: updatedSession?.orderState,
         toolsUsed: baristaResponse.toolsUsed,
         validationPassed: baristaResponse.validationPassed,
         latency_ms: baristaResponse.latency_ms,
       });
+      res.end();
     } catch (err) {
       console.error("[chat] error:", err);
-      res.status(500).json({ error: "AI service error. Please try again." });
+      if (!res.headersSent) {
+        res.status(500).json({ error: "AI service error. Please try again." });
+      }
     }
   });
 

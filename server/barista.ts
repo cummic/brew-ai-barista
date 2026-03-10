@@ -374,7 +374,8 @@ export interface BaristaResponse {
 
 export async function runBaristaChat(
   conversationHistory: Array<{ role: "user" | "assistant"; content: string }>,
-  orderState: OrderState
+  orderState: OrderState,
+  onChunk?: (text: string) => void
 ): Promise<BaristaResponse> {
   const data = getMenuData();
 
@@ -417,9 +418,11 @@ export async function runBaristaChat(
 
   while (true) {
     const callStart = Date.now();
-    const response = await client.messages.create(
+
+    // P4: Use streaming API for all calls. onChunk fires for text deltas (not tool_use blocks).
+    const stream = await client.messages.stream(
       {
-        model: "claude-sonnet-4-5",
+        model: "claude-haiku-4-5",
         max_tokens: 1024,
         system: systemBlocks as any,
         tools: cachedTools as any,
@@ -427,6 +430,12 @@ export async function runBaristaChat(
       },
       { headers: { "anthropic-beta": "prompt-caching-2024-07-31" } }
     );
+
+    stream.on("text", (text) => {
+      if (onChunk) onChunk(text);
+    });
+
+    const response = await stream.finalMessage();
 
     apiCallCount++;
     const usage = response.usage as any;
