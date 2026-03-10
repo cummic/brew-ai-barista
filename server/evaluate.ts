@@ -1,4 +1,4 @@
-import { runBaristaChat } from "./barista.js";
+import { runBaristaChat, initMenu } from "./barista.js";
 import type { OrderState } from "../shared/schema.js";
 import { readFileSync } from "fs";
 import { join } from "path";
@@ -19,6 +19,7 @@ function createOrderState(): OrderState {
   return {
     sessionId,
     stage: "greeting",
+    userName: null,
     location: null,
     drink: null,
     milkType: null,
@@ -92,6 +93,8 @@ async function runTestCase(
 }
 
 async function main() {
+  await initMenu();
+
   const raw = readFileSync(join(process.cwd(), "golden_dataset.json"), "utf-8");
   const testCases: TestCase[] = JSON.parse(raw);
 

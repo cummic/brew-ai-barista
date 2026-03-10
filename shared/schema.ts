@@ -8,7 +8,7 @@ export type OrderStage =
   | "payment"
   | "confirmed";
 
-export type MilkType = "whole" | "2%" | "almond";
+export type MilkType = "whole" | "2pct" | "almond";
 export type PastryType = "none" | "croissant" | "chocolate_croissant";
 export type LocationId = "wtc" | "penn" | "grand_central";
 export type TipOption = 0 | 10;

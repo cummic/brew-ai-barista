@@ -1,32 +1,55 @@
 import Anthropic from "@anthropic-ai/sdk";
-import type { OrderState, MilkType, PastryType, LocationId, TipOption } from "@shared/schema";
-import { menu, getDrink, getMilkOption, getPastry, getLocation, getLocationInventory } from "./menu";
+import type { OrderState } from "@shared/schema";
+import { loadMenuData, insertOrder, type MenuData } from "./db";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
-function buildSystemPrompt(): string {
-  const drinkList = menu.drinks
+const TAX_RATE = 0.08875;
+const TIP_OPTIONS = [0, 10];
+
+let menuData: MenuData | null = null;
+let SYSTEM_PROMPT = "";
+let TOOLS: Anthropic.Tool[] = [];
+
+export async function initMenu(): Promise<void> {
+  menuData = await loadMenuData();
+  SYSTEM_PROMPT = buildSystemPrompt(menuData);
+  TOOLS = buildTools(menuData);
+
+  const drinks = menuData.products.filter((p) => p.category === "drink").map((p) => p.name);
+  const pastries = menuData.products.filter((p) => p.category === "pastry").map((p) => p.name);
+  console.log(
+    `[barista] Menu loaded from Supabase — locations: ${menuData.locations.length}, drinks: [${drinks.join(", ")}], pastries: [${pastries.join(", ")}]`
+  );
+}
+
+function getMenuData(): MenuData {
+  if (!menuData) throw new Error("[barista] Menu not initialized — call initMenu() first");
+  return menuData;
+}
+
+function buildSystemPrompt(data: MenuData): string {
+  const drinks = data.products.filter((p) => p.category === "drink");
+  const pastries = data.products.filter((p) => p.category === "pastry");
+  const milkModifiers = data.modifiers.filter((m) => m.modifier_group_id === "milk_options");
+
+  const drinkList = drinks
     .map((d) => {
-      const upcharges = menu.milk_options
+      const upcharges = milkModifiers
         .filter((m) => m.upcharge > 0)
         .map((m) => `${m.name} +$${m.upcharge.toFixed(2)}`);
       return `${d.name} ($${d.base_price.toFixed(2)} base${upcharges.length ? `; ${upcharges.join(", ")} for alternative milk` : ""})`;
     })
     .join(", ");
 
-  const pastryList = menu.pastries
-    .filter((p) => p.id !== "none")
-    .map((p) => `${p.name} ($${p.price.toFixed(2)})`)
-    .join(", ");
+  const pastryList = pastries.map((p) => `${p.name} ($${p.base_price.toFixed(2)})`).join(", ");
 
-  const locationNames = menu.locations.map((l) => l.name).join(", ");
-  const locationIds = menu.locations.map((l) => `${l.name} (${l.id})`).join("; ");
-  const tipList = menu.tip_options.map((t) => `${t}%`).join(" or ");
-  const taxPct = (menu.tax_rate * 100).toFixed(3);
-
-  const milkNames = menu.milk_options.map((m) => m.name).join(", ");
-
-  const drinkNames = menu.drinks.map((d) => d.name).join(" or ");
+  const locationNames = data.locations.map((l) => l.name).join(", ");
+  const locationIds = data.locations.map((l) => `${l.name} (${l.id})`).join("; ");
+  const tipList = TIP_OPTIONS.map((t) => `${t}%`).join(" or ");
+  const taxPct = (TAX_RATE * 100).toFixed(3);
+  const milkNames = milkModifiers.map((m) => m.name).join(", ");
+  const drinkNames = drinks.map((d) => d.name).join(" or ");
 
   return `You are Brew, a barista at a Manhattan coffee shop with locations at ${locationNames}. Speak exactly like a real human barista — casual, warm, brief. Never list options or recite a menu.
 
@@ -88,12 +111,11 @@ GUARDRAILS:
 Location IDs for tools: ${locationIds}`;
 }
 
-function buildTools(): Anthropic.Tool[] {
-  const drinkEnum = menu.drinks.map((d) => d.id);
-  const milkEnum = menu.milk_options.map((m) => m.id);
-  const pastryEnum = menu.pastries.map((p) => p.id);
-  const tipEnum = menu.tip_options;
-  const locationEnum = menu.locations.map((l) => l.id);
+function buildTools(data: MenuData): Anthropic.Tool[] {
+  const drinkEnum = data.products.filter((p) => p.category === "drink").map((p) => p.id);
+  const milkEnum = data.modifiers.filter((m) => m.modifier_group_id === "milk_options").map((m) => m.id);
+  const pastryEnum = ["none", ...data.products.filter((p) => p.category === "pastry").map((p) => p.id)];
+  const locationEnum = data.locations.map((l) => l.id);
 
   return [
     {
@@ -112,29 +134,29 @@ function buildTools(): Anthropic.Tool[] {
     },
     {
       name: "calculate_total",
-      description: `Calculates the total price for the order including milk upcharges, pastry, NYC tax (${(menu.tax_rate * 100).toFixed(3)}%), and tip. MUST be called before quoting any price to the customer.`,
+      description: `Calculates the total price for the order including milk upcharges, pastry, NYC tax (${(TAX_RATE * 100).toFixed(3)}%), and tip. MUST be called before quoting any price to the customer.`,
       input_schema: {
         type: "object",
         properties: {
           drink: {
             type: "string",
             enum: drinkEnum,
-            description: "The drink ordered",
+            description: "The drink product ID ordered",
           },
           milk_type: {
             type: "string",
             enum: milkEnum,
-            description: "The type of milk",
+            description: "The milk modifier ID",
           },
           pastry: {
             type: "string",
             enum: pastryEnum,
-            description: "The pastry selection, or 'none' if no pastry",
+            description: "The pastry product ID, or 'none' if no pastry",
           },
           tip: {
             type: "number",
-            enum: tipEnum,
-            description: `Tip percentage: ${tipEnum.join(" or ")}`,
+            enum: TIP_OPTIONS,
+            description: `Tip percentage: ${TIP_OPTIONS.join(" or ")}`,
           },
         },
         required: ["drink", "milk_type", "pastry", "tip"],
@@ -142,7 +164,7 @@ function buildTools(): Anthropic.Tool[] {
     },
     {
       name: "get_store_info",
-      description: "Returns address and current status for a BrewBot location.",
+      description: "Returns address, hours, and available inventory for a Brew location.",
       input_schema: {
         type: "object",
         properties: {
@@ -157,7 +179,7 @@ function buildTools(): Anthropic.Tool[] {
     },
     {
       name: "submit_order",
-      description: "Finalizes and submits the customer's order. Only call this when the customer has explicitly confirmed they want to place the order.",
+      description: "Finalizes and submits the customer's order to the database. Only call this when the customer has explicitly confirmed they want to place the order.",
       input_schema: {
         type: "object",
         properties: {
@@ -165,10 +187,10 @@ function buildTools(): Anthropic.Tool[] {
             type: "object",
             description: "The complete order details",
             properties: {
-              location: { type: "string" },
-              drink: { type: "string" },
-              milk_type: { type: "string" },
-              pastry: { type: "string" },
+              location: { type: "string", description: "Location ID" },
+              drink: { type: "string", description: "Drink product ID" },
+              milk_type: { type: "string", description: "Milk modifier ID" },
+              pastry: { type: "string", description: "Pastry product ID or 'none'" },
               tip_percent: { type: "number" },
               subtotal: { type: "number" },
               tax: { type: "number" },
@@ -184,21 +206,24 @@ function buildTools(): Anthropic.Tool[] {
   ];
 }
 
-const SYSTEM_PROMPT = buildSystemPrompt();
-const TOOLS = buildTools();
-
-export function calculateTotal(drinkId: string, milkType: MilkType, pastry: PastryType, tip: TipOption) {
-  const drink = getDrink(drinkId);
-  const milkOption = getMilkOption(milkType);
-  const pastryItem = getPastry(pastry);
+export function calculateTotal(
+  drinkId: string,
+  milkModifierId: string,
+  pastryId: string,
+  tip: number,
+  data: MenuData
+) {
+  const drink = data.products.find((p) => p.id === drinkId);
+  const milk = data.modifiers.find((m) => m.id === milkModifierId);
+  const pastry = pastryId !== "none" ? data.products.find((p) => p.id === pastryId) : null;
 
   if (!drink) throw new Error(`Unknown drink: ${drinkId}`);
 
   let subtotal = drink.base_price;
-  subtotal += milkOption?.upcharge ?? 0;
-  subtotal += pastryItem?.price ?? 0;
+  subtotal += milk?.upcharge ?? 0;
+  subtotal += pastry?.base_price ?? 0;
 
-  const tax = subtotal * menu.tax_rate;
+  const tax = subtotal * TAX_RATE;
   const tipAmount = (subtotal + tax) * (tip / 100);
   const total = subtotal + tax + tipAmount;
 
@@ -210,11 +235,14 @@ export function calculateTotal(drinkId: string, milkType: MilkType, pastry: Past
   };
 }
 
-export function getStoreInfo(locationId: LocationId) {
-  const location = getLocation(locationId);
+export function getStoreInfo(locationId: string, data: MenuData) {
+  const location = data.locations.find((l) => l.id === locationId);
   if (!location) return null;
 
-  const inv = location.inventory;
+  const drinks = data.products.filter((p) => p.category === "drink");
+  const pastries = data.products.filter((p) => p.category === "pastry");
+  const milkModifiers = data.modifiers.filter((m) => m.modifier_group_id === "milk_options");
+
   return {
     id: location.id,
     name: location.name,
@@ -222,35 +250,19 @@ export function getStoreInfo(locationId: LocationId) {
     status: location.status,
     hours: location.hours,
     inventory: {
-      drinks: inv.drinks.map((id) => {
-        const d = getDrink(id);
-        return { id, name: d?.name ?? id, base_price: d?.base_price ?? 0 };
-      }),
-      milk_options: inv.milk_options.map((id) => {
-        const m = getMilkOption(id);
-        return { id, name: m?.name ?? id, upcharge: m?.upcharge ?? 0 };
-      }),
-      pastries: inv.pastries.map((id) => {
-        const p = getPastry(id);
-        return { id, name: p?.name ?? id, price: p?.price ?? 0 };
-      }),
+      drinks: drinks.map((d) => ({ id: d.id, name: d.name, base_price: d.base_price })),
+      milk_options: milkModifiers.map((m) => ({ id: m.id, name: m.name, upcharge: m.upcharge })),
+      pastries: pastries.map((p) => ({ id: p.id, name: p.name, price: p.base_price })),
     },
   };
 }
 
-export function submitOrder(orderData: Record<string, unknown>, orderState: OrderState) {
-  return {
-    success: true,
-    message: `Order confirmed. Customer name will be on the order at the pickup area.`,
-    order: orderData,
-  };
-}
-
-function handleToolCall(
+async function handleToolCall(
   toolName: string,
   toolInput: Record<string, unknown>,
   orderState: OrderState
-): { result: unknown; stateUpdates: Partial<OrderState> } {
+): Promise<{ result: unknown; stateUpdates: Partial<OrderState> }> {
+  const data = getMenuData();
   const stateUpdates: Partial<OrderState> = {};
 
   if (toolName === "capture_user_name") {
@@ -260,41 +272,85 @@ function handleToolCall(
   }
 
   if (toolName === "calculate_total") {
-    const drink = toolInput.drink as string;
-    const milk_type = toolInput.milk_type as MilkType;
-    const pastry = toolInput.pastry as PastryType;
-    const tip = toolInput.tip as TipOption;
-    const result = calculateTotal(drink, milk_type, pastry, tip);
+    const drinkId = toolInput.drink as string;
+    const milkModifierId = toolInput.milk_type as string;
+    const pastryId = toolInput.pastry as string;
+    const tip = toolInput.tip as number;
 
-    stateUpdates.drink = drink;
-    stateUpdates.milkType = milk_type;
-    stateUpdates.pastry = pastry;
-    stateUpdates.tip = tip;
+    const result = calculateTotal(drinkId, milkModifierId, pastryId, tip, data);
+
+    stateUpdates.drink = drinkId;
+    stateUpdates.milkType = milkModifierId as any;
+    stateUpdates.pastry = pastryId as any;
+    stateUpdates.tip = tip as any;
     stateUpdates.total = result.total;
 
     return { result, stateUpdates };
   }
 
   if (toolName === "get_store_info") {
-    const location_id = toolInput.location_id as LocationId;
-    const result = getStoreInfo(location_id);
+    const locationId = toolInput.location_id as string;
+    const result = getStoreInfo(locationId, data);
 
     if (result) {
-      stateUpdates.location = location_id;
+      stateUpdates.location = locationId as any;
       stateUpdates.stage = "configuring";
     }
 
-    return { result: result || { error: "Location not found" }, stateUpdates };
+    return { result: result ?? { error: "Location not found" }, stateUpdates };
   }
 
   if (toolName === "submit_order") {
     const order_data = toolInput.order_data as Record<string, unknown>;
-    const result = submitOrder(order_data, orderState);
+    const drinkId = (order_data.drink ?? orderState.drink) as string;
+    const milkId = (order_data.milk_type ?? orderState.milkType) as string;
+    const pastryId = (order_data.pastry ?? orderState.pastry) as string;
+    const locationId = (order_data.location ?? orderState.location) as string;
+    const total = (order_data.total ?? orderState.total) as number;
+    const tip = (order_data.tip_percent ?? orderState.tip ?? 0) as number;
+
+    const totals = calculateTotal(drinkId, milkId, pastryId === "none" ? "none" : pastryId, tip, data);
+
+    const drink = data.products.find((p) => p.id === drinkId);
+    const milkUpcharge = data.modifiers.find((m) => m.id === milkId)?.upcharge ?? 0;
+    const drinkItemPrice = (drink?.base_price ?? 0) + milkUpcharge;
+    const pastry = pastryId !== "none" ? data.products.find((p) => p.id === pastryId) : null;
+    const pastryItemPrice = pastry?.base_price ?? 0;
+
+    let dbResult: { orderId: string } | null = null;
+    let dbError: string | null = null;
+
+    try {
+      dbResult = await insertOrder({
+        sessionId: orderState.sessionId,
+        userName: orderState.userName ?? "Guest",
+        locationId,
+        drinkProductId: drinkId,
+        drinkTotalPrice: Math.round(drinkItemPrice * 100) / 100,
+        milkModifierId: milkId ?? null,
+        pastryProductId: pastryId !== "none" ? pastryId : null,
+        pastryTotalPrice: Math.round(pastryItemPrice * 100) / 100,
+        orderTotal: totals.total,
+      });
+      console.log(`[barista] Order inserted into Supabase — id: ${dbResult.orderId}`);
+    } catch (err: any) {
+      dbError = err.message;
+      console.error("[barista] submit_order DB insert failed:", err.message);
+    }
 
     stateUpdates.stage = "confirmed";
     stateUpdates.submittedAt = new Date().toISOString();
 
-    return { result, stateUpdates };
+    return {
+      result: {
+        success: !dbError,
+        orderId: dbResult?.orderId ?? null,
+        error: dbError,
+        message: "Order confirmed. Customer name will be on the order at the pickup area.",
+        order: order_data,
+      },
+      stateUpdates,
+    };
   }
 
   return { result: { error: "Unknown tool" }, stateUpdates };
@@ -312,6 +368,8 @@ export async function runBaristaChat(
   conversationHistory: Array<{ role: "user" | "assistant"; content: string }>,
   orderState: OrderState
 ): Promise<BaristaResponse> {
+  const data = getMenuData();
+
   const messages: Anthropic.MessageParam[] = conversationHistory.map((m) => ({
     role: m.role,
     content: m.content,
@@ -336,7 +394,9 @@ export async function runBaristaChat(
     });
 
     apiCallCount++;
-    console.log(`[barista] API call #${apiCallCount} completed in ${Date.now() - callStart}ms (stop_reason=${response.stop_reason})`);
+    console.log(
+      `[barista] API call #${apiCallCount} completed in ${Date.now() - callStart}ms (stop_reason=${response.stop_reason})`
+    );
 
     if (response.stop_reason === "end_turn") {
       finalMessage = response.content
@@ -355,7 +415,7 @@ export async function runBaristaChat(
       for (const block of assistantContent) {
         if (block.type === "tool_use") {
           toolsUsed.push(block.name);
-          const { result, stateUpdates } = handleToolCall(
+          const { result, stateUpdates } = await handleToolCall(
             block.name,
             block.input as Record<string, unknown>,
             { ...orderState, ...allStateUpdates }
@@ -388,31 +448,40 @@ export async function runBaristaChat(
     allStateUpdates.tip !== undefined &&
     allStateUpdates.total !== undefined
   ) {
-    const expectedResult = calculateTotal(
-      allStateUpdates.drink,
-      allStateUpdates.milkType as MilkType,
-      allStateUpdates.pastry as PastryType,
-      allStateUpdates.tip as TipOption
-    );
-    const dollarPattern = /\$(\d+\.\d{2})/g;
-    const matches = Array.from(finalMessage.matchAll(dollarPattern));
-    for (const match of matches) {
-      const mentionedAmount = parseFloat(match[1]);
-      if (
-        Math.abs(mentionedAmount - expectedResult.total) > 0.01 &&
-        Math.abs(mentionedAmount - expectedResult.subtotal) > 0.01 &&
-        Math.abs(mentionedAmount - expectedResult.tax) > 0.01 &&
-        Math.abs(mentionedAmount - expectedResult.tip_amount) > 0.01 &&
-        mentionedAmount > 1.00
-      ) {
-        validationPassed = false;
-        console.warn(`[OutputValidator] Suspicious amount $${mentionedAmount} does not match calculated values. Expected total: $${expectedResult.total}`);
+    try {
+      const expectedResult = calculateTotal(
+        allStateUpdates.drink,
+        allStateUpdates.milkType as string,
+        allStateUpdates.pastry as string,
+        allStateUpdates.tip as number,
+        data
+      );
+      const dollarPattern = /\$(\d+\.\d{2})/g;
+      const matches = Array.from(finalMessage.matchAll(dollarPattern));
+      for (const match of matches) {
+        const mentionedAmount = parseFloat(match[1]);
+        if (
+          Math.abs(mentionedAmount - expectedResult.total) > 0.01 &&
+          Math.abs(mentionedAmount - expectedResult.subtotal) > 0.01 &&
+          Math.abs(mentionedAmount - expectedResult.tax) > 0.01 &&
+          Math.abs(mentionedAmount - expectedResult.tip_amount) > 0.01 &&
+          mentionedAmount > 1.0
+        ) {
+          validationPassed = false;
+          console.warn(
+            `[OutputValidator] Suspicious amount $${mentionedAmount} does not match calculated values. Expected total: $${expectedResult.total}`
+          );
+        }
       }
+    } catch (err: any) {
+      console.warn("[OutputValidator] Skipped:", err.message);
     }
   }
 
   const latency_ms = Date.now() - interactionStart;
-  console.log(`[barista] Total interaction: ${latency_ms}ms across ${apiCallCount} API call(s), tools=[${toolsUsed.join(", ") || "none"}]`);
+  console.log(
+    `[barista] Total interaction: ${latency_ms}ms across ${apiCallCount} API call(s), tools=[${toolsUsed.join(", ") || "none"}]`
+  );
 
   return {
     message: finalMessage,
