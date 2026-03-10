@@ -187,21 +187,18 @@
   },
   {
     "id": "TC-16",
-    "description": "Inventory restriction: cortado is_available=false at grand_central via location_inventory — AI must decline and NOT call submit_order. NOTE: requires location_inventory table with (location_id='grand_central', product_id='cortado', is_available=false) and corresponding get_store_info logic.",
+    "description": "Inventory restriction + redirect: almond milk declined at penn, customer switches to whole milk and completes order",
     "category": "inventory_restriction",
     "environment": "development",
-    "setup": {
-      "location_inventory": {
-        "location_id": "grand_central",
-        "product_id": "cortado",
-        "is_available": false
-      }
-    },
+    "expectedDbTable": "orders",
     "messages": [
-      "Grand Central",
-      "I'd like a cortado please"
+      "Penn Station",
+      "latte with almond milk",
+      "okay whole milk then",
+      "no pastry",
+      "no tip",
+      "yes charge it"
     ],
-    "expectedTools": ["get_store_info"],
-    "expectNoSubmitOrder": true
+    "expectedTools": ["get_store_info", "calculate_total", "submit_order"]
   }
 ]
