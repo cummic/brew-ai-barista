@@ -1,0 +1,212 @@
+[TC-01] Happy path: wtc latte whole milk no pastry 0% tip — full order submitted
+         [barista] API call #1 completed in 1402ms (stop_reason=end_turn)
+[barista] Total interaction: 1402ms across 1 API call(s), tools=[none]
+[barista] API call #1 completed in 6969ms (stop_reason=tool_use)
+[barista] API call #2 completed in 12025ms (stop_reason=end_turn)
+[barista] Total interaction: 18995ms across 2 API call(s), tools=[capture_user_name]
+[barista] API call #1 completed in 11040ms (stop_reason=tool_use)
+[db] fetchStoreInfo(wtc): drinks=[latte, cortado], pastries=[croissant, chocolate_croissant], milk=[whole, 2pct, almond]
+[barista] API call #2 completed in 2976ms (stop_reason=end_turn)
+[barista] Total interaction: 14206ms across 2 API call(s), tools=[capture_user_name, get_store_info]
+[barista] API call #1 completed in 7641ms (stop_reason=end_turn)
+[barista] Total interaction: 7641ms across 1 API call(s), tools=[none]
+[barista] API call #1 completed in 7165ms (stop_reason=tool_use)
+[db] fetchStoreInfo(wtc): drinks=[latte, cortado], pastries=[croissant, chocolate_croissant], milk=[whole, 2pct, almond]
+[barista] API call #2 completed in 1627ms (stop_reason=tool_use)
+[barista] API call #3 completed in 8806ms (stop_reason=end_turn)
+[barista] Total interaction: 17855ms across 3 API call(s), tools=[calculate_total, capture_user_name]
+[barista] API call #1 completed in 7217ms (stop_reason=tool_use)
+[db] fetchStoreInfo(wtc): drinks=[latte, cortado], pastries=[croissant, chocolate_croissant], milk=[whole, 2pct, almond]
+[barista] API call #2 completed in 1729ms (stop_reason=end_turn)
+[barista] Total interaction: 9161ms across 2 API call(s), tools=[calculate_total]
+[barista] API call #1 completed in 11259ms (stop_reason=tool_use)
+[barista] Order inserted into Supabase — id: 83c4aec0-2603-4720-b132-dfe0b31ec64f
+[barista] API call #2 completed in 1984ms (stop_reason=end_turn)
+[barista] Total interaction: 13765ms across 2 API call(s), tools=[submit_order]
+PASS  tools=[capture_user_name, get_store_info, calculate_total, capture_user_name, calculate_total, submit_order] (83.0s)
+[TC-02] Happy path: grand_central cortado almond milk chocolate_croissant 10% tip
+         [barista] API call #1 completed in 7422ms (stop_reason=end_turn)
+[barista] Total interaction: 7422ms across 1 API call(s), tools=[none]
+[barista] API call #1 completed in 5843ms (stop_reason=tool_use)
+[barista] API call #2 completed in 1381ms (stop_reason=end_turn)
+[barista] Total interaction: 7224ms across 2 API call(s), tools=[capture_user_name]
+[barista] API call #1 completed in 9922ms (stop_reason=tool_use)
+[db] fetchStoreInfo(grand_central): drinks=[latte, cortado], pastries=[croissant, chocolate_croissant], milk=[whole, 2pct, almond]
+[barista] API call #2 completed in 1692ms (stop_reason=end_turn)
+[barista] Total interaction: 11801ms across 2 API call(s), tools=[capture_user_name, get_store_info]
+[barista] API call #1 completed in 10024ms (stop_reason=end_turn)
+[barista] Total interaction: 10024ms across 1 API call(s), tools=[none]
+[barista] API call #1 completed in 4513ms (stop_reason=tool_use)
+[db] fetchStoreInfo(grand_central): drinks=[latte, cortado], pastries=[croissant, chocolate_croissant], milk=[whole, 2pct, almond]
+[barista] API call #2 completed in 9347ms (stop_reason=end_turn)
+[barista] Total interaction: 14068ms across 2 API call(s), tools=[calculate_total]
+[barista] API call #1 completed in 1913ms (stop_reason=tool_use)
+[db] fetchStoreInfo(grand_central): drinks=[latte, cortado], pastries=[croissant, chocolate_croissant], milk=[whole, 2pct, almond]
+[barista] API call #2 completed in 7147ms (stop_reason=end_turn)
+[barista] Total interaction: 9239ms across 2 API call(s), tools=[calculate_total]
+[barista] API call #1 completed in 6309ms (stop_reason=tool_use)
+[db] fetchStoreInfo(grand_central): drinks=[latte, cortado], pastries=[croissant, chocolate_croissant], milk=[whole, 2pct, almond]
+[barista] API call #2 completed in 2567ms (stop_reason=tool_use)
+[barista] Order inserted into Supabase — id: 9cb334db-fdc1-4e49-a203-4bcd63c11434
+[barista] API call #3 completed in 10044ms (stop_reason=end_turn)
+[barista] Total interaction: 19605ms across 3 API call(s), tools=[capture_user_name, calculate_total, submit_order]
+PASS  tools=[capture_user_name, get_store_info, calculate_total, calculate_total, capture_user_name, calculate_total, submit_order] (79.4s)
+[TC-03] Happy path: penn latte 2pct milk croissant 0% tip
+         [barista] API call #1 completed in 7046ms (stop_reason=end_turn)
+[barista] Total interaction: 7046ms across 1 API call(s), tools=[none]
+[barista] API call #1 completed in 1342ms (stop_reason=tool_use)
+[barista] API call #2 completed in 8728ms (stop_reason=end_turn)
+[barista] Total interaction: 10070ms across 2 API call(s), tools=[capture_user_name]
+[barista] API call #1 completed in 3349ms (stop_reason=tool_use)
+[db] fetchStoreInfo(penn): drinks=[latte], pastries=[croissant], milk=[whole, 2pct]
+[barista] API call #2 completed in 6856ms (stop_reason=end_turn)
+[barista] Total interaction: 10431ms across 2 API call(s), tools=[capture_user_name, get_store_info]
+[barista] API call #1 completed in 5404ms (stop_reason=end_turn)
+[barista] Total interaction: 5404ms across 1 API call(s), tools=[none]
+[barista] API call #1 completed in 7136ms (stop_reason=tool_use)
+[db] fetchStoreInfo(penn): drinks=[latte], pastries=[croissant], milk=[whole, 2pct]
+[barista] API call #2 completed in 1505ms (stop_reason=end_turn)
+[barista] Total interaction: 8826ms across 2 API call(s), tools=[calculate_total]
+[barista] API call #1 completed in 11004ms (stop_reason=tool_use)
+[db] fetchStoreInfo(penn): drinks=[latte], pastries=[croissant], milk=[whole, 2pct]
+[barista] API call #2 completed in 2887ms (stop_reason=end_turn)
+[barista] Total interaction: 14081ms across 2 API call(s), tools=[calculate_total]
+[barista] API call #1 completed in 7725ms (stop_reason=tool_use)
+[barista] Order inserted into Supabase — id: 8e439f7d-c0c1-4fa0-aa24-d3d4af94438b
+[barista] API call #2 completed in 1662ms (stop_reason=end_turn)
+[barista] Total interaction: 10116ms across 2 API call(s), tools=[submit_order]
+PASS  tools=[capture_user_name, get_store_info, calculate_total, calculate_total, submit_order] (66.0s)
+[TC-04] Inventory restriction: cortado not stocked at penn — order must not be submitted
+         [barista] API call #1 completed in 9737ms (stop_reason=end_turn)
+[barista] Total interaction: 9737ms across 1 API call(s), tools=[none]
+[barista] API call #1 completed in 2592ms (stop_reason=tool_use)
+[barista] API call #2 completed in 10424ms (stop_reason=end_turn)
+[barista] Total interaction: 13017ms across 2 API call(s), tools=[capture_user_name]
+[barista] API call #1 completed in 2551ms (stop_reason=tool_use)
+[db] fetchStoreInfo(penn): drinks=[latte], pastries=[croissant], milk=[whole, 2pct]
+[barista] API call #2 completed in 3032ms (stop_reason=end_turn)
+[barista] Total interaction: 5749ms across 2 API call(s), tools=[capture_user_name, get_store_info]
+[barista] API call #1 completed in 8943ms (stop_reason=end_turn)
+[barista] Total interaction: 8943ms across 1 API call(s), tools=[none]
+PASS  tools=[capture_user_name, get_store_info] (37.4s)
+[TC-05] Inventory restriction: almond milk not stocked at penn — order must not be submitted
+         [barista] API call #1 completed in 1255ms (stop_reason=end_turn)
+[barista] Total interaction: 1256ms across 1 API call(s), tools=[none]
+[barista] API call #1 completed in 9670ms (stop_reason=tool_use)
+[barista] API call #2 completed in 2003ms (stop_reason=end_turn)
+[barista] Total interaction: 11673ms across 2 API call(s), tools=[capture_user_name]
+[barista] API call #1 completed in 9766ms (stop_reason=tool_use)
+[db] fetchStoreInfo(penn): drinks=[latte], pastries=[croissant], milk=[whole, 2pct]
+[barista] API call #2 completed in 2662ms (stop_reason=end_turn)
+[barista] Total interaction: 12847ms across 2 API call(s), tools=[capture_user_name, get_store_info]
+[barista] API call #1 completed in 8920ms (stop_reason=end_turn)
+[barista] Total interaction: 8920ms across 1 API call(s), tools=[none]
+PASS  tools=[capture_user_name, get_store_info] (34.7s)
+[TC-06] Inventory restriction: chocolate_croissant not stocked at penn — order must not be submitted
+         [barista] API call #1 completed in 2107ms (stop_reason=end_turn)
+[barista] Total interaction: 2107ms across 1 API call(s), tools=[none]
+[barista] API call #1 completed in 9806ms (stop_reason=tool_use)
+[barista] API call #2 completed in 1456ms (stop_reason=end_turn)
+[barista] Total interaction: 11263ms across 2 API call(s), tools=[capture_user_name]
+[barista] API call #1 completed in 7046ms (stop_reason=tool_use)
+[db] fetchStoreInfo(penn): drinks=[latte], pastries=[croissant], milk=[whole, 2pct]
+[barista] API call #2 completed in 2646ms (stop_reason=end_turn)
+[barista] Total interaction: 9887ms across 2 API call(s), tools=[capture_user_name, get_store_info]
+[barista] API call #1 completed in 8927ms (stop_reason=end_turn)
+[barista] Total interaction: 8927ms across 1 API call(s), tools=[none]
+[barista] API call #1 completed in 6683ms (stop_reason=end_turn)
+[barista] Total interaction: 6683ms across 1 API call(s), tools=[none]
+PASS  tools=[capture_user_name, get_store_info] (38.9s)
+[TC-07] Location ambiguity: 'train station' is not a specific location — get_store_info must not be called
+         [barista] API call #1 completed in 1396ms (stop_reason=end_turn)
+[barista] Total interaction: 1396ms across 1 API call(s), tools=[none]
+[barista] API call #1 completed in 8675ms (stop_reason=tool_use)
+[barista] API call #2 completed in 5092ms (stop_reason=end_turn)
+[barista] Total interaction: 13767ms across 2 API call(s), tools=[capture_user_name]
+[barista] API call #1 completed in 6193ms (stop_reason=end_turn)
+[barista] Total interaction: 6193ms across 1 API call(s), tools=[none]
+PASS  no tools (21.4s)
+[TC-08] Location ambiguity: 'downtown transit hub' is not specific — get_store_info must not be called
+         [barista] API call #1 completed in 1365ms (stop_reason=end_turn)
+[barista] Total interaction: 1365ms across 1 API call(s), tools=[none]
+[barista] API call #1 completed in 8610ms (stop_reason=tool_use)
+[barista] API call #2 completed in 5879ms (stop_reason=end_turn)
+[barista] Total interaction: 14489ms across 2 API call(s), tools=[capture_user_name]
+[barista] API call #1 completed in 7107ms (stop_reason=end_turn)
+[barista] Total interaction: 7107ms across 1 API call(s), tools=[none]
+PASS  no tools (23.0s)
+[TC-09] Price validation: almond latte + croissant + 10% tip at wtc — price must come from calculate_total
+         [barista] API call #1 completed in 1111ms (stop_reason=end_turn)
+[barista] Total interaction: 1111ms across 1 API call(s), tools=[none]
+[barista] API call #1 completed in 7622ms (stop_reason=tool_use)
+[barista] API call #2 completed in 6288ms (stop_reason=end_turn)
+[barista] Total interaction: 13910ms across 2 API call(s), tools=[capture_user_name]
+[barista] API call #1 completed in 2938ms (stop_reason=tool_use)
+[db] fetchStoreInfo(wtc): drinks=[latte, cortado], pastries=[croissant, chocolate_croissant], milk=[whole, 2pct, almond]
+[barista] API call #2 completed in 6929ms (stop_reason=end_turn)
+[barista] Total interaction: 10149ms across 2 API call(s), tools=[capture_user_name, get_store_info]
+[barista] API call #1 completed in 7231ms (stop_reason=end_turn)
+[barista] Total interaction: 7231ms across 1 API call(s), tools=[none]
+[barista] API call #1 completed in 2219ms (stop_reason=tool_use)
+[db] fetchStoreInfo(wtc): drinks=[latte, cortado], pastries=[croissant, chocolate_croissant], milk=[whole, 2pct, almond]
+[barista] API call #2 completed in 9211ms (stop_reason=end_turn)
+[barista] Total interaction: 11613ms across 2 API call(s), tools=[calculate_total]
+[barista] API call #1 completed in 2217ms (stop_reason=tool_use)
+[db] fetchStoreInfo(wtc): drinks=[latte, cortado], pastries=[croissant, chocolate_croissant], milk=[whole, 2pct, almond]
+[barista] API call #2 completed in 8798ms (stop_reason=end_turn)
+[barista] Total interaction: 11199ms across 2 API call(s), tools=[calculate_total]
+[barista] API call #1 completed in 8329ms (stop_reason=tool_use)
+[db] fetchStoreInfo(wtc): drinks=[latte, cortado], pastries=[croissant, chocolate_croissant], milk=[whole, 2pct, almond]
+[barista] API call #2 completed in 3212ms (stop_reason=tool_use)
+[barista] Order inserted into Supabase — id: cadc38c0-d1f5-43d9-a8ef-f32a386ec618
+[barista] API call #3 completed in 7810ms (stop_reason=end_turn)
+[barista] Total interaction: 20111ms across 3 API call(s), tools=[calculate_total, submit_order]
+PASS  tools=[capture_user_name, get_store_info, calculate_total, calculate_total, calculate_total, submit_order] (75.3s)
+[TC-10] Off-topic guardrail: non-coffee question redirected — no tools should be called
+         [barista] API call #1 completed in 1143ms (stop_reason=end_turn)
+[barista] Total interaction: 1143ms across 1 API call(s), tools=[none]
+[barista] API call #1 completed in 10825ms (stop_reason=tool_use)
+[barista] API call #2 completed in 2504ms (stop_reason=end_turn)
+[barista] Total interaction: 13330ms across 2 API call(s), tools=[capture_user_name]
+[barista] API call #1 completed in 7117ms (stop_reason=end_turn)
+[barista] Total interaction: 7117ms across 1 API call(s), tools=[none]
+PASS  no tools (21.6s)
+[TC-11] Menu happy path: location confirmed first (wtc), then price list requested — get_store_info must be called, no order placed
+         [barista] API call #1 completed in 2366ms (stop_reason=end_turn)
+[barista] Total interaction: 2366ms across 1 API call(s), tools=[none]
+[barista] API call #1 completed in 9295ms (stop_reason=tool_use)
+[barista] API call #2 completed in 1699ms (stop_reason=end_turn)
+[barista] Total interaction: 10995ms across 2 API call(s), tools=[capture_user_name]
+[barista] API call #1 completed in 9049ms (stop_reason=tool_use)
+[db] fetchStoreInfo(wtc): drinks=[latte, cortado], pastries=[croissant, chocolate_croissant], milk=[whole, 2pct, almond]
+[barista] API call #2 completed in 1665ms (stop_reason=end_turn)
+[barista] Total interaction: 11080ms across 2 API call(s), tools=[capture_user_name, get_store_info]
+[barista] API call #1 completed in 8821ms (stop_reason=tool_use)
+[db] fetchStoreInfo(wtc): drinks=[latte, cortado], pastries=[croissant, chocolate_croissant], milk=[whole, 2pct, almond]
+[barista] API call #2 completed in 6470ms (stop_reason=end_turn)
+[barista] Total interaction: 15462ms across 2 API call(s), tools=[get_store_info]
+PASS  tools=[capture_user_name, get_store_info, get_store_info] (39.9s)
+[TC-12] Menu happy path: penn price list shows limited inventory only — get_store_info called, no order placed
+         [barista] API call #1 completed in 2947ms (stop_reason=end_turn)
+[barista] Total interaction: 2947ms across 1 API call(s), tools=[none]
+[barista] API call #1 completed in 8351ms (stop_reason=tool_use)
+[barista] API call #2 completed in 2417ms (stop_reason=end_turn)
+[barista] Total interaction: 10768ms across 2 API call(s), tools=[capture_user_name]
+[barista] API call #1 completed in 9372ms (stop_reason=tool_use)
+[db] fetchStoreInfo(penn): drinks=[latte], pastries=[croissant], milk=[whole, 2pct]
+[barista] API call #2 completed in 2928ms (stop_reason=end_turn)
+[barista] Total interaction: 12475ms across 2 API call(s), tools=[capture_user_name, get_store_info]
+[barista] API call #1 completed in 18887ms (stop_reason=tool_use)
+[db] fetchStoreInfo(penn): drinks=[latte], pastries=[croissant], milk=[whole, 2pct]
+[barista] API call #2 completed in 3386ms (stop_reason=end_turn)
+[barista] Total interaction: 22463ms across 2 API call(s), tools=[get_store_info]
+PASS  tools=[capture_user_name, get_store_info, get_store_info] (48.7s)
+[TC-13] Menu negative: price list requested before location stated — get_store_info must NOT be called
+         [barista] API call #1 completed in 2512ms (stop_reason=end_turn)
+[barista] Total interaction: 2512ms across 1 API call(s), tools=[none]
+[barista] API call #1 completed in 1613ms (stop_reason=tool_use)
+[barista] API call #2 completed in 2340ms (stop_reason=end_turn)
+[barista] Total interaction: 3953ms across 2 API call(s), tools=[capture_user_name]
+[barista] API call #1 completed in 7966ms (stop_reason=end_turn)
+[barista] Total interaction: 7966ms across 1 API call(s), tools=[none]
+PASS  no tools (14.4s)
