@@ -131,7 +131,9 @@ async function main() {
   let passed = 0;
   let failed = 0;
 
-  for (const tc of testCases) {
+  for (let i = 0; i < testCases.length; i++) {
+    const tc = testCases[i];
+    if (i > 0) await new Promise((r) => setTimeout(r, 3000)); // avoid rate limits between test cases
     process.stdout.write(`${DIM}[${tc.id}]${RESET} ${tc.description}\n         `);
 
     const start = Date.now();

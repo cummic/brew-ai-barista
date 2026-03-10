@@ -89,7 +89,7 @@ TOOL RULES:
 - ALWAYS call calculate_total before saying any price. Never invent a number.
 - Call get_store_info once you know the location.
 - Call submit_order only after the customer confirms they're ready to pay.
-- Call capture_user_name as soon as the customer tells you their name — before moving on.
+- Call capture_user_name EXACTLY ONCE per session — the very first time the customer states their name. Never call it again in the same conversation, even if their name comes up later.
 
 MENU AND PRICE REQUESTS:
 - If a customer asks for a menu, price list, or what's available BEFORE a location is confirmed: ask for their location first. Do not share any items or prices until you know which location they are at.
@@ -415,11 +415,24 @@ export async function runBaristaChat(
   let apiCallCount = 0;
 
   // P3: Prompt caching — static system prompt and tools are cached (ephemeral, 5-min TTL).
-  // The dynamic location block is appended uncached since it varies per location.
+  // The dynamic session state and location blocks are appended uncached since they vary per turn.
   const effectiveInventory = orderState.locationInventory;
   const systemBlocks: Array<{ type: "text"; text: string; cache_control?: { type: "ephemeral" } }> = [
     { type: "text", text: SYSTEM_PROMPT, cache_control: { type: "ephemeral" } },
   ];
+
+  // Inject current session state so Claude never re-calls tools for already-captured values.
+  const sessionStateLines: string[] = [];
+  if (orderState.userName) {
+    sessionStateLines.push(`- Customer name already captured as "${orderState.userName}". DO NOT call capture_user_name again under any circumstances.`);
+  }
+  if (sessionStateLines.length > 0) {
+    systemBlocks.push({
+      type: "text",
+      text: `\n\nSESSION STATE (already recorded — do not re-capture):\n${sessionStateLines.join("\n")}`,
+    });
+  }
+
   if (effectiveInventory) {
     systemBlocks.push({
       type: "text",
@@ -442,22 +455,37 @@ export async function runBaristaChat(
     const callStart = Date.now();
 
     // P4: Use streaming API for all calls. onChunk fires for text deltas (not tool_use blocks).
-    const stream = await client.messages.stream(
-      {
-        model: "claude-haiku-4-5",
-        max_tokens: 1024,
-        system: systemBlocks as any,
-        tools: cachedTools as any,
-        messages: currentMessages,
-      },
-      { headers: { "anthropic-beta": "prompt-caching-2024-07-31" } }
-    );
-
-    stream.on("text", (text) => {
-      if (onChunk) onChunk(text);
-    });
-
-    const response = await stream.finalMessage();
+    // Retry up to 3 times on 429 rate-limit errors with exponential backoff.
+    let response!: Anthropic.Message;
+    let retryDelay = 8000;
+    for (let attempt = 0; ; attempt++) {
+      try {
+        const stream = client.messages.stream(
+          {
+            model: "claude-haiku-4-5",
+            max_tokens: 1024,
+            system: systemBlocks as any,
+            tools: cachedTools as any,
+            messages: currentMessages,
+          },
+          { headers: { "anthropic-beta": "prompt-caching-2024-07-31" } }
+        );
+        stream.on("text", (text) => {
+          if (onChunk) onChunk(text);
+        });
+        response = await stream.finalMessage();
+        break;
+      } catch (err: any) {
+        const is429 = err?.status === 429 || String(err).includes("429");
+        if (is429 && attempt < 3) {
+          console.log(`[barista] Rate limited — retrying in ${retryDelay / 1000}s (attempt ${attempt + 1}/3)`);
+          await new Promise((r) => setTimeout(r, retryDelay));
+          retryDelay *= 2;
+        } else {
+          throw err;
+        }
+      }
+    }
 
     apiCallCount++;
     const usage = response.usage as any;
