@@ -179,7 +179,10 @@ export async function insertOrder(params: {
 
   const environment = process.env.NODE_ENV === "production" ? "production" : "development";
 
-  const { data: order, error: orderError } = await supabase
+  // Try inserting with milk_modifier_id. Falls back without it if the column doesn't exist yet.
+  // To enable: ALTER TABLE orders ADD COLUMN milk_modifier_id TEXT;
+  let order: { id: string } | null = null;
+  const { data: orderData, error: orderError } = await supabase
     .from("orders")
     .insert({
       session_id: params.sessionId,
@@ -188,12 +191,35 @@ export async function insertOrder(params: {
       total_price: params.orderTotal,
       status: "pending",
       environment,
+      milk_modifier_id: params.milkModifierId,
     })
     .select("id")
     .single();
 
-  if (orderError || !order) {
-    throw new Error(`[db] Failed to insert order: ${orderError?.message}`);
+  if (orderError) {
+    if (orderError.message?.includes("milk_modifier_id") || orderError.code === "42703") {
+      console.warn("[db] milk_modifier_id column not found — run: ALTER TABLE orders ADD COLUMN milk_modifier_id TEXT;");
+      const { data: fallback, error: fallbackError } = await supabase
+        .from("orders")
+        .insert({
+          session_id: params.sessionId,
+          user_name: params.userName,
+          location_id: params.locationId,
+          total_price: params.orderTotal,
+          status: "pending",
+          environment,
+        })
+        .select("id")
+        .single();
+      if (fallbackError || !fallback) {
+        throw new Error(`[db] Failed to insert order: ${fallbackError?.message}`);
+      }
+      order = fallback as { id: string };
+    } else {
+      throw new Error(`[db] Failed to insert order: ${orderError.message}`);
+    }
+  } else {
+    order = orderData as { id: string };
   }
 
   const orderId = (order as { id: string }).id;

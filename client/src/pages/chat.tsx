@@ -95,7 +95,7 @@ const PASTRY_LABELS: Record<string, string> = {
 const STAGE_LABELS: Record<string, string> = {
   greeting: "Getting Started",
   identifying: "Selecting Location",
-  configuring: "Customizing Latte",
+  configuring: "Customizing Order",
   upselling: "Adding Extras",
   payment: "Payment",
   confirmed: "Order Confirmed",
