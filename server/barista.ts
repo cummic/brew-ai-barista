@@ -256,6 +256,35 @@ async function handleToolCall(
     const pastryId = toolInput.pastry as string;
     const tip = toolInput.tip as number;
 
+    const currentLocation = orderState.location as string | null;
+    if (currentLocation) {
+      const storeInfo = await fetchStoreInfo(currentLocation, data);
+      if (storeInfo) {
+        const availableDrinkIds = storeInfo.inventory.drinks.map((d) => d.id);
+        const availableMilkIds = storeInfo.inventory.milk_options.map((m) => m.id);
+        const availablePastryIds = storeInfo.inventory.pastries.map((p) => p.id);
+
+        const unavailable: string[] = [];
+        if (!availableDrinkIds.includes(drinkId)) unavailable.push(`drink "${drinkId}"`);
+        if (!availableMilkIds.includes(milkModifierId)) unavailable.push(`milk "${milkModifierId}"`);
+        if (pastryId !== "none" && !availablePastryIds.includes(pastryId)) unavailable.push(`pastry "${pastryId}"`);
+
+        if (unavailable.length > 0) {
+          console.warn(`[barista] calculate_total blocked — unavailable at ${currentLocation}: ${unavailable.join(", ")}`);
+          return {
+            result: {
+              error: "Cannot calculate total: some items are not available at this location.",
+              unavailable_items: unavailable,
+              available_drinks: availableDrinkIds,
+              available_milk_options: availableMilkIds,
+              available_pastries: availablePastryIds,
+            },
+            stateUpdates: {},
+          };
+        }
+      }
+    }
+
     const result = calculateTotal(drinkId, milkModifierId, pastryId, tip, data);
 
     stateUpdates.drink = drinkId;
@@ -274,6 +303,11 @@ async function handleToolCall(
     if (result) {
       stateUpdates.location = locationId as any;
       stateUpdates.stage = "configuring";
+      stateUpdates.locationInventory = {
+        drinks: result.inventory.drinks.map((d) => d.id),
+        milk: result.inventory.milk_options.map((m) => m.id),
+        pastries: result.inventory.pastries.map((p) => p.id),
+      };
     }
 
     return { result: result ?? { error: "Location not found" }, stateUpdates };
@@ -362,12 +396,23 @@ export async function runBaristaChat(
   let currentMessages = [...messages];
   let apiCallCount = 0;
 
+  const effectiveInventory = orderState.locationInventory;
+  const dynamicSystem = effectiveInventory
+    ? SYSTEM_PROMPT +
+      `\n\n⚠️ LOCATION LOCKED — ${orderState.location}:\n` +
+      `The customer is at ${orderState.location}. The ONLY items stocked here are:\n` +
+      `- Drinks: ${effectiveInventory.drinks.join(", ")}\n` +
+      `- Milk options: ${effectiveInventory.milk.join(", ")}\n` +
+      `- Pastries: ${effectiveInventory.pastries.join(", ")}\n` +
+      `If the customer asks for ANYTHING not in these lists, politely decline it and suggest only what IS listed above. Never accept or confirm an unavailable item.`
+    : SYSTEM_PROMPT;
+
   while (true) {
     const callStart = Date.now();
     const response = await client.messages.create({
       model: "claude-sonnet-4-5",
       max_tokens: 1024,
-      system: SYSTEM_PROMPT,
+      system: dynamicSystem,
       tools: TOOLS,
       messages: currentMessages,
     });

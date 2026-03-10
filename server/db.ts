@@ -100,21 +100,51 @@ export async function fetchStoreInfo(
 
   const supabase = getSupabase();
 
-  const { data: unavailableRows, error } = await supabase
-    .from("location_inventory")
-    .select("product_id")
-    .eq("location_id", locationId)
-    .eq("is_available", false);
+  const [
+    { data: availableProductRows, error: productError },
+    { data: availableModifierRows, error: modifierError },
+  ] = await Promise.all([
+    supabase
+      .from("location_inventory")
+      .select("product_id")
+      .eq("location_id", locationId)
+      .eq("is_available", true),
+    supabase
+      .from("location_modifier_inventory")
+      .select("modifier_id")
+      .eq("location_id", locationId)
+      .eq("is_available", true),
+  ]);
 
-  if (error) {
-    console.warn(`[db] location_inventory query failed for ${locationId}:`, error.message);
+  if (productError) {
+    console.warn(`[db] location_inventory query failed for ${locationId}:`, productError.message);
+  }
+  if (modifierError) {
+    console.warn(`[db] location_modifier_inventory query failed for ${locationId}:`, modifierError.message);
   }
 
-  const unavailableIds = new Set((unavailableRows ?? []).map((r: { product_id: string }) => r.product_id));
+  const availableProductIds = new Set(
+    (availableProductRows ?? []).map((r: { product_id: string }) => r.product_id)
+  );
+  const availableModifierIds = new Set(
+    (availableModifierRows ?? []).map((r: { modifier_id: string }) => r.modifier_id)
+  );
 
-  const drinks = data.products.filter((p) => p.category === "drink" && !unavailableIds.has(p.id));
-  const pastries = data.products.filter((p) => p.category === "pastry" && !unavailableIds.has(p.id));
-  const milkModifiers = data.modifiers.filter((m) => m.modifier_group_id === "milk_options");
+  const drinks = data.products.filter(
+    (p) => p.category === "drink" && availableProductIds.has(p.id)
+  );
+  const pastries = data.products.filter(
+    (p) => p.category === "pastry" && availableProductIds.has(p.id)
+  );
+  const milkModifiers = data.modifiers.filter(
+    (m) => m.modifier_group_id === "milk_options" && availableModifierIds.has(m.id)
+  );
+
+  console.log(
+    `[db] fetchStoreInfo(${locationId}): drinks=[${drinks.map((d) => d.id).join(", ")}], ` +
+    `pastries=[${pastries.map((p) => p.id).join(", ")}], ` +
+    `milk=[${milkModifiers.map((m) => m.id).join(", ")}]`
+  );
 
   return {
     id: location.id,

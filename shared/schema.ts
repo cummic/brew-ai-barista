@@ -13,11 +13,18 @@ export type PastryType = "none" | "croissant" | "chocolate_croissant";
 export type LocationId = "wtc" | "penn" | "grand_central";
 export type TipOption = 0 | 10;
 
+export interface LocationInventorySnapshot {
+  drinks: string[];
+  milk: string[];
+  pastries: string[];
+}
+
 export interface OrderState {
   sessionId: string;
   stage: OrderStage;
   userName: string | null;
   location: LocationId | null;
+  locationInventory: LocationInventorySnapshot | null;
   drink: string | null;
   milkType: MilkType | null;
   pastry: PastryType | null;
