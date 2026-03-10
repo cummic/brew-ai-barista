@@ -39,16 +39,23 @@ async function runTestCase(
   const allToolsUsed: string[] = [];
   let priceValidationFailed = false;
 
-  // Bootstrap: Claude always greets and asks for the customer's name first.
-  // Send a fixed name so every test case starts from a consistent post-greeting state.
-  history.push({ role: "user", content: "Eval" });
+  // Bootstrap: mirror exactly what the web app does.
+  // Step 1 — Send "Hello" to get Claude's opening greeting (asking for the customer's name).
+  // Step 2 — Send the customer's name to trigger capture_user_name.
+  // Without this two-step init the conversation context is wrong and Claude won't call tools.
   try {
-    const bootstrap = await runBaristaChat(history, orderState);
-    history.push({ role: "assistant", content: bootstrap.message });
-    allToolsUsed.push(...bootstrap.toolsUsed);
-    orderState = { ...orderState, ...bootstrap.stateUpdates };
+    history.push({ role: "user", content: "Hello" });
+    const greet = await runBaristaChat(history, orderState);
+    history.push({ role: "assistant", content: greet.message });
+    orderState = { ...orderState, ...greet.stateUpdates };
+
+    history.push({ role: "user", content: "Eval" });
+    const nameStep = await runBaristaChat(history, orderState);
+    history.push({ role: "assistant", content: nameStep.message });
+    orderState = { ...orderState, ...nameStep.stateUpdates };
+    // capture_user_name is an internal bootstrap tool — don't count it in test assertions
   } catch (err) {
-    return { pass: false, reason: `Bootstrap (name step) threw: ${err}`, toolsUsed: allToolsUsed };
+    return { pass: false, reason: `Bootstrap threw: ${err}`, toolsUsed: allToolsUsed };
   }
 
   for (const userMsg of tc.messages) {
