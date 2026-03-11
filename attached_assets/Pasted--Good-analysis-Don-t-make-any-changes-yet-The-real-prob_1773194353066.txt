@@ -1,0 +1,28 @@
+> Good analysis. Don't make any changes yet.
+>
+> The real problem is that tool-use turns require two sequential API calls, causing 3–6 seconds of blank screen before any text appears. I want you to evaluate the following options for reducing perceived latency in the demo app and give me a recommendation. For each option, tell me the tradeoffs, implementation complexity, and estimated improvement.
+>
+> **Option 1 — Remove `track_selection`**
+> This tool fires on every confirmed item (drink, milk, pastry, tip) and causes a double API call each time with no visible output to the user. Removing it would save 2s on 3–4 turns per order. What breaks if we remove it, and what would we need to replace it with?
+>
+> **Option 2 — Switch models**
+> We're on `claude-haiku-4-5`. What's the fastest available Anthropic model right now and what would switching cost us in terms of quality and price?
+>
+> **Option 3 — Optimistic UI**
+> Instead of waiting for the full API response, show a placeholder message immediately when the user sends ("Got it, one sec...") then replace it when the real response arrives. This doesn't reduce actual latency but reduces perceived latency. How complex is this to implement in our current SSE streaming setup?
+>
+> **Option 4 — Parallel tool execution**
+> If multiple tools are called in the same turn, execute them in parallel instead of sequentially. Is this happening in our codebase, and would it help?
+>
+> **Option 5 — Speculative `get_store_info` prefetch**
+> The moment a user mentions a valid location name in their message (WTC, Penn Station, Grand Central), fire `get_store_info` in the background before Claude even responds. By the time Claude's first API call completes, the store data is already cached in `orderState`, eliminating the double API call on the location turn entirely. How feasible is this given our current session and storage architecture?
+>
+> **Option 6 — Stream tool-use turns differently**
+> Currently the user sees typing dots during the entire first API call on tool turns with nothing visible. Instead, detect when a tool call is about to happen and immediately stream a short acknowledgment ("On it...") so the screen isn't blank. How would this work with our current SSE streaming setup in `routes.ts`?
+>
+> **Option 7 — Collapse `track_selection` into `calculate_total`**
+> Instead of calling `track_selection` 3–4 times during the order (once per confirmed item), batch all selections into a single `calculate_total` call at the end. This eliminates 3–4 double API call turns in exchange for the order summary panel updating less frequently. What is the real-time UI impact and is it worth the tradeoff?
+>
+> For each option provide: impact (high/medium/low), effort (high/medium/low), and your recommendation on whether to pursue it. Then give me an overall recommended combination to pursue first, ranked by best impact-to-effort ratio.
+>
+> Wait for my approval before changing anything.

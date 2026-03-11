@@ -3,7 +3,6 @@ import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
 import { Send, RotateCcw, Coffee, MapPin, Milk, Croissant, CreditCard, CheckCircle2, Clock, ChevronDown, ChevronUp } from "lucide-react";
 import type { OrderState, ChatMessage } from "@shared/schema";
 
@@ -166,6 +165,12 @@ function OrderPanel({ orderState }: { orderState: OrderState }) {
   const progress = STAGE_PROGRESS[orderState.stage] || 0;
   const isConfirmed = orderState.stage === "confirmed";
 
+  useEffect(() => {
+    if (orderState.total !== null) {
+      setExpanded(true);
+    }
+  }, [orderState.total]);
+
   return (
     <div className={`border-t border-border bg-card transition-all duration-300 ${expanded ? "max-h-72" : "max-h-16"}`}>
       <button
@@ -182,11 +187,6 @@ function OrderPanel({ orderState }: { orderState: OrderState }) {
           <span className="text-foreground font-semibold">
             {isConfirmed ? "Order Confirmed" : STAGE_LABELS[orderState.stage]}
           </span>
-          {orderState.total && (
-            <Badge variant="secondary" className="text-xs font-bold">
-              ${orderState.total.toFixed(2)}
-            </Badge>
-          )}
         </div>
         {expanded ? <ChevronDown className="h-4 w-4 text-muted-foreground" /> : <ChevronUp className="h-4 w-4 text-muted-foreground" />}
       </button>

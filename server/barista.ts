@@ -98,7 +98,6 @@ ORDER FLOW (move through this naturally):
 7. Call submit_order, tell them to look for their name at the pickup area and include the specific location name (e.g. "at Penn Station", "at Grand Central", "at WTC"). Give an approximate pickup time. No confirmation numbers.
 
 TOOL RULES:
-- Call track_selection silently (no accompanying text, before your reply) immediately after each item is confirmed: drink after drink confirmed, milk_type after milk confirmed, pastry after pastry confirmed or declined (use "none"), tip after tip confirmed. This keeps the order summary display updated in real time.
 - Call calculate_total EXACTLY ONCE per order — only after drink, milk, pastry choice, AND tip are all confirmed. Never call it mid-conversation as a preview or intermediate step.
 - ALWAYS call calculate_total before saying any price. Never invent a number.
 - Call get_store_info once you know the location.
@@ -204,36 +203,6 @@ function buildTools(data: MenuData): Anthropic.Tool[] {
       },
     },
     {
-      name: "track_selection",
-      description:
-        "Updates the order summary panel as the customer confirms each item. Call this silently (no accompanying text) immediately after each item is confirmed: drink after drink choice, milk_type after milk choice, pastry after pastry choice ('none' if declined), tip after tip choice. Do NOT call before the item is fully confirmed.",
-      input_schema: {
-        type: "object",
-        properties: {
-          drink: {
-            type: "string",
-            enum: drinkEnum,
-            description: "Confirmed drink ID",
-          },
-          milk_type: {
-            type: "string",
-            enum: milkEnum,
-            description: "Confirmed milk modifier ID",
-          },
-          pastry: {
-            type: "string",
-            enum: pastryEnum,
-            description: "Confirmed pastry ID, or 'none'",
-          },
-          tip: {
-            type: "number",
-            enum: TIP_OPTIONS,
-            description: "Confirmed tip percentage",
-          },
-        },
-      },
-    },
-    {
       name: "submit_order",
       description:
         "Finalizes and submits the customer's order to the database. Only call this when the customer has explicitly confirmed they want to place the order.",
@@ -327,16 +296,6 @@ async function handleToolCall(
     const name = toolInput.name as string;
     stateUpdates.userName = name;
     return { result: { success: true, name }, stateUpdates };
-  }
-
-  if (toolName === "track_selection") {
-    if (toolInput.drink) stateUpdates.drink = toolInput.drink as string;
-    if (toolInput.milk_type) stateUpdates.milkType = toolInput.milk_type as any;
-    if (toolInput.pastry !== undefined)
-      stateUpdates.pastry = toolInput.pastry as any;
-    if (typeof toolInput.tip === "number")
-      stateUpdates.tip = toolInput.tip as any;
-    return { result: { success: true }, stateUpdates };
   }
 
   if (toolName === "calculate_total") {
