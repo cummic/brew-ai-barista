@@ -440,6 +440,7 @@ export async function runBaristaChat(
   const effectiveToolList = TOOLS.filter((t) => {
     if (t.name === "capture_user_name" && orderState.userName) return false;
     if (t.name === "get_store_info" && orderState.locationInventory) return false;
+    if (t.name === "calculate_total" && orderState.total !== null) return false;
     return true;
   });
 
@@ -448,6 +449,12 @@ export async function runBaristaChat(
     i === effectiveToolList.length - 1 ? { ...t, cache_control: { type: "ephemeral" as const } } : t
   );
 
+  // Once the total is confirmed, force Claude to call at least one tool on the FIRST call of each
+  // turn (should be submit_order). Must NOT apply on follow-up calls within the same turn or it
+  // causes an infinite submit_order loop.
+  const toolChoice = orderState.total !== null ? { type: "any" as const } : undefined;
+  let applyToolChoice = true; // consumed after first API call this turn
+
   while (true) {
     const callStart = Date.now();
 
@@ -455,6 +462,8 @@ export async function runBaristaChat(
     // Retry up to 3 times on 429 rate-limit errors with exponential backoff.
     let response!: Anthropic.Message;
     let retryDelay = 8000;
+    const thisCallToolChoice = applyToolChoice ? toolChoice : undefined;
+    applyToolChoice = false; // only the first call gets tool_choice
     for (let attempt = 0; ; attempt++) {
       try {
         const stream = client.messages.stream(
@@ -464,6 +473,7 @@ export async function runBaristaChat(
             system: systemBlocks as any,
             tools: effectiveTools as any,
             messages: currentMessages,
+            ...(thisCallToolChoice ? { tool_choice: thisCallToolChoice } : {}),
           },
           { headers: { "anthropic-beta": "prompt-caching-2024-07-31" } }
         );
