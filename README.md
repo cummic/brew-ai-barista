@@ -113,11 +113,12 @@ each specifically:
   and returns a clarification request instantly — no API cost incurred
 - **Price hallucination**: An output validator checks every dollar amount in
   Claude's response against the `calculate_total` result and flags mismatches
+- **Bulk order interception**: A code-level check in `routes.ts` detects group or multi-item order language ("for my office", quantities > 1, numbered item lists) and redirects immediately before any API call is made — protecting against the math failures that occur when Claude attempts multi-item order calculations beyond the single-order schema
 
-### Eval Suite: 16 Test Cases, 6 Categories
+### Eval Suite: 17 Test Cases, 7 Categories
 
 The eval suite was designed before any evaluation code was written — test cases
-first, runner second. 16 cases across 6 categories:
+first, runner second. 17 cases across 7 categories — adding a bulk/group order redirect case (e.g. "4 lattes for my office" must be intercepted before any API call is made):
 
 - **Happy path** (3 cases): Full order flow at each location
 - **Inventory restriction** (4 cases): Items not stocked at a location must
@@ -130,6 +131,7 @@ first, runner second. 16 cases across 6 categories:
   first, one location at a time
 - **Guardrails** (1 case): Off-topic requests must be redirected with no tools
   called
+- **Bulk order redirect** (1 case): Multi-item or group orders intercepted before any API call
 
 The eval runner uses a concurrency-controlled parallel executor and a golden
 dataset (`golden_dataset.json`) that defines expected tool sequences and

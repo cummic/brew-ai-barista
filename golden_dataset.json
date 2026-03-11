@@ -203,5 +203,16 @@
     ],
     "expectedTools": ["get_store_info"],
     "expectNoSubmitOrder": true
+  },
+  {
+    "id": "TC-17",
+    "description": "Bulk order guardrail: '4 lattes for my office' must be intercepted before any API call — no tools called",
+    "category": "bulk_order",
+    "environment": "development",
+    "messages": [
+      "4 lattes for my office"
+    ],
+    "expectedTools": [],
+    "expectNoStoreInfo": true
   }
 ]
