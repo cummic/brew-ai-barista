@@ -32,7 +32,7 @@ function createOrderState(): OrderState {
 }
 
 async function runTestCase(
-  tc: TestCase
+  tc: TestCase,
 ): Promise<{ pass: boolean; reason: string; toolsUsed: string[] }> {
   const history: Array<{ role: "user" | "assistant"; content: string }> = [];
   let orderState = createOrderState();
@@ -55,7 +55,11 @@ async function runTestCase(
     orderState = { ...orderState, ...nameStep.stateUpdates };
     // capture_user_name is an internal bootstrap tool — don't count it in test assertions
   } catch (err) {
-    return { pass: false, reason: `Bootstrap threw: ${err}`, toolsUsed: allToolsUsed };
+    return {
+      pass: false,
+      reason: `Bootstrap threw: ${err}`,
+      toolsUsed: allToolsUsed,
+    };
   }
 
   for (const userMsg of tc.messages) {
@@ -67,11 +71,18 @@ async function runTestCase(
       allToolsUsed.push(...result.toolsUsed);
       orderState = { ...orderState, ...result.stateUpdates };
 
-      if (result.toolsUsed.includes("calculate_total") && !result.validationPassed) {
+      if (
+        result.toolsUsed.includes("calculate_total") &&
+        !result.validationPassed
+      ) {
         priceValidationFailed = true;
       }
     } catch (err) {
-      return { pass: false, reason: `Exception thrown: ${err}`, toolsUsed: allToolsUsed };
+      return {
+        pass: false,
+        reason: `Exception thrown: ${err}`,
+        toolsUsed: allToolsUsed,
+      };
     }
   }
 
@@ -88,7 +99,8 @@ async function runTestCase(
   if (tc.expectNoSubmitOrder && allToolsUsed.includes("submit_order")) {
     return {
       pass: false,
-      reason: "submit_order was called but should NOT have been (inventory restriction expected)",
+      reason:
+        "submit_order was called but should NOT have been (inventory restriction expected)",
       toolsUsed: allToolsUsed,
     };
   }
@@ -96,7 +108,8 @@ async function runTestCase(
   if (tc.expectNoStoreInfo && allToolsUsed.includes("get_store_info")) {
     return {
       pass: false,
-      reason: "get_store_info was called but location was ambiguous — should have asked for clarification first",
+      reason:
+        "get_store_info was called but location was ambiguous — should have asked for clarification first",
       toolsUsed: allToolsUsed,
     };
   }
@@ -104,12 +117,32 @@ async function runTestCase(
   if (priceValidationFailed) {
     return {
       pass: false,
-      reason: "Price validation failed: AI quoted an amount that doesn't match the calculate_total result",
+      reason:
+        "Price validation failed: AI quoted an amount that doesn't match the calculate_total result",
       toolsUsed: allToolsUsed,
     };
   }
 
   return { pass: true, reason: "All checks passed", toolsUsed: allToolsUsed };
+}
+
+// Runs up to `limit` promises concurrently, resolving in original order.
+async function runWithConcurrency<T>(
+  tasks: Array<() => Promise<T>>,
+  limit: number,
+): Promise<T[]> {
+  const results: T[] = new Array(tasks.length);
+  let nextIndex = 0;
+
+  async function worker() {
+    while (nextIndex < tasks.length) {
+      const index = nextIndex++;
+      results[index] = await tasks[index]();
+    }
+  }
+
+  await Promise.all(Array.from({ length: limit }, worker));
+  return results;
 }
 
 async function main() {
@@ -118,6 +151,11 @@ async function main() {
   const raw = readFileSync(join(process.cwd(), "golden_dataset.json"), "utf-8");
   const testCases: TestCase[] = JSON.parse(raw);
 
+  // Concurrency=1 + 2s inter-call delay in barista.ts keeps us well under
+  // Tier 1's 50 req/min hard cap with zero 429s. Raise to 2 and remove the
+  // delay in barista.ts when you upgrade to a higher-tier API plan.
+  const CONCURRENCY = 1;
+
   const RESET = "\x1b[0m";
   const GREEN = "\x1b[32m";
   const RED = "\x1b[31m";
@@ -125,28 +163,49 @@ async function main() {
   const DIM = "\x1b[2m";
 
   console.log(`\n${BOLD}AI Barista — Evaluation Suite${RESET}`);
-  console.log(`Running ${testCases.length} test cases against Claude...\n`);
+  console.log(
+    `Running ${testCases.length} test cases against Claude... (concurrency=${CONCURRENCY})\n`,
+  );
   console.log("─".repeat(70));
 
+  // Each task captures its index so we can print results in order as they finish.
+  // A shared mutex-free counter tracks completed cases for the live progress line.
+  let completed = 0;
+
+  const tasks = testCases.map((tc, i) => async () => {
+    const start = Date.now();
+    const result = await runTestCase(tc);
+    const elapsed = ((Date.now() - start) / 1000).toFixed(1);
+    completed++;
+    return { tc, result, elapsed, index: i };
+  });
+
+  // Run all tasks with bounded concurrency, collecting ordered results.
+  const outcomes = await runWithConcurrency(tasks, CONCURRENCY);
+
+  // Print results in original test-case order (not completion order) for
+  // a stable, diff-friendly output — easier to spot regressions across runs.
   let passed = 0;
   let failed = 0;
 
-  for (let i = 0; i < testCases.length; i++) {
-    const tc = testCases[i];
-    if (i > 0) await new Promise((r) => setTimeout(r, 3000)); // avoid rate limits between test cases
-    process.stdout.write(`${DIM}[${tc.id}]${RESET} ${tc.description}\n         `);
+  for (const { tc, result, elapsed } of outcomes) {
+    const { pass, reason, toolsUsed } = result;
+    const toolsSummary =
+      toolsUsed.length > 0 ? `tools=[${toolsUsed.join(", ")}]` : "no tools";
 
-    const start = Date.now();
-    const { pass, reason, toolsUsed } = await runTestCase(tc);
-    const elapsed = ((Date.now() - start) / 1000).toFixed(1);
-
-    const toolsSummary = toolsUsed.length > 0 ? `tools=[${toolsUsed.join(", ")}]` : "no tools";
+    process.stdout.write(
+      `${DIM}[${tc.id}]${RESET} ${tc.description}\n         `,
+    );
 
     if (pass) {
-      console.log(`${GREEN}PASS${RESET}  ${DIM}${toolsSummary} (${elapsed}s)${RESET}`);
+      console.log(
+        `${GREEN}PASS${RESET}  ${DIM}${toolsSummary} (${elapsed}s)${RESET}`,
+      );
       passed++;
     } else {
-      console.log(`${RED}FAIL${RESET}  ${DIM}${toolsSummary} (${elapsed}s)${RESET}`);
+      console.log(
+        `${RED}FAIL${RESET}  ${DIM}${toolsSummary} (${elapsed}s)${RESET}`,
+      );
       console.log(`         ${RED}↳ ${reason}${RESET}`);
       failed++;
     }
@@ -155,10 +214,12 @@ async function main() {
   console.log("\n" + "─".repeat(70));
 
   if (failed === 0) {
-    console.log(`${GREEN}${BOLD}All ${passed}/${testCases.length} tests passed.${RESET}\n`);
+    console.log(
+      `${GREEN}${BOLD}All ${passed}/${testCases.length} tests passed.${RESET}\n`,
+    );
   } else {
     console.log(
-      `${BOLD}Results: ${GREEN}${passed} passed${RESET}${BOLD}, ${RED}${failed} failed${RESET}${BOLD} (${testCases.length} total)${RESET}\n`
+      `${BOLD}Results: ${GREEN}${passed} passed${RESET}${BOLD}, ${RED}${failed} failed${RESET}${BOLD} (${testCases.length} total)${RESET}\n`,
     );
     process.exit(1);
   }

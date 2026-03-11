@@ -5,7 +5,7 @@ interface RateLimitEntry {
 
 const store = new Map<string, RateLimitEntry>();
 
-const LIMIT = 10;
+const LIMIT = 30;
 const WINDOW_MS = 60_000;
 
 export function checkRateLimit(key: string): { allowed: boolean; remaining: number; retryAfterMs: number } {

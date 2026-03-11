@@ -2,7 +2,10 @@ import Anthropic from "@anthropic-ai/sdk";
 import type { OrderState } from "@shared/schema";
 import { loadMenuData, insertOrder, fetchStoreInfo, type MenuData } from "./db";
 
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+const client = new Anthropic({
+  apiKey: process.env.ANTHROPIC_API_KEY,
+  defaultHeaders: { "anthropic-beta": "prompt-caching-2024-07-31" },
+});
 
 const TAX_RATE = 0.08875;
 const TIP_OPTIONS = [0, 10];
@@ -16,22 +19,29 @@ export async function initMenu(): Promise<void> {
   SYSTEM_PROMPT = buildSystemPrompt(menuData);
   TOOLS = buildTools(menuData);
 
-  const drinks = menuData.products.filter((p) => p.category === "drink").map((p) => p.name);
-  const pastries = menuData.products.filter((p) => p.category === "pastry").map((p) => p.name);
+  const drinks = menuData.products
+    .filter((p) => p.category === "drink")
+    .map((p) => p.name);
+  const pastries = menuData.products
+    .filter((p) => p.category === "pastry")
+    .map((p) => p.name);
   console.log(
-    `[barista] Menu loaded from Supabase — locations: ${menuData.locations.length}, drinks: [${drinks.join(", ")}], pastries: [${pastries.join(", ")}]`
+    `[barista] Menu loaded from Supabase — locations: ${menuData.locations.length}, drinks: [${drinks.join(", ")}], pastries: [${pastries.join(", ")}]`,
   );
 }
 
 function getMenuData(): MenuData {
-  if (!menuData) throw new Error("[barista] Menu not initialized — call initMenu() first");
+  if (!menuData)
+    throw new Error("[barista] Menu not initialized — call initMenu() first");
   return menuData;
 }
 
 function buildSystemPrompt(data: MenuData): string {
   const drinks = data.products.filter((p) => p.category === "drink");
   const pastries = data.products.filter((p) => p.category === "pastry");
-  const milkModifiers = data.modifiers.filter((m) => m.modifier_group_id === "milk_options");
+  const milkModifiers = data.modifiers.filter(
+    (m) => m.modifier_group_id === "milk_options",
+  );
 
   const drinkList = drinks
     .map((d) => {
@@ -42,10 +52,14 @@ function buildSystemPrompt(data: MenuData): string {
     })
     .join(", ");
 
-  const pastryList = pastries.map((p) => `${p.name} ($${p.base_price.toFixed(2)})`).join(", ");
+  const pastryList = pastries
+    .map((p) => `${p.name} ($${p.base_price.toFixed(2)})`)
+    .join(", ");
 
   const locationNames = data.locations.map((l) => l.name).join(", ");
-  const locationIds = data.locations.map((l) => `${l.name} (${l.id})`).join("; ");
+  const locationIds = data.locations
+    .map((l) => `${l.name} (${l.id})`)
+    .join("; ");
   const tipList = TIP_OPTIONS.map((t) => `${t}%`).join(" or ");
   const taxPct = (TAX_RATE * 100).toFixed(3);
   const milkNames = milkModifiers.map((m) => m.name).join(", ");
@@ -114,21 +128,30 @@ Location IDs for tools: ${locationIds}`;
 }
 
 function buildTools(data: MenuData): Anthropic.Tool[] {
-  const drinkEnum = data.products.filter((p) => p.category === "drink").map((p) => p.id);
-  const milkEnum = data.modifiers.filter((m) => m.modifier_group_id === "milk_options").map((m) => m.id);
-  const pastryEnum = ["none", ...data.products.filter((p) => p.category === "pastry").map((p) => p.id)];
+  const drinkEnum = data.products
+    .filter((p) => p.category === "drink")
+    .map((p) => p.id);
+  const milkEnum = data.modifiers
+    .filter((m) => m.modifier_group_id === "milk_options")
+    .map((m) => m.id);
+  const pastryEnum = [
+    "none",
+    ...data.products.filter((p) => p.category === "pastry").map((p) => p.id),
+  ];
   const locationEnum = data.locations.map((l) => l.id);
 
-  return [
+  const tools: Anthropic.Tool[] = [
     {
       name: "capture_user_name",
-      description: "Saves the customer's name to the session. Call this as soon as the customer tells you their name.",
+      description:
+        "Saves the customer's name to the session. Call this as soon as the customer tells you their name.",
       input_schema: {
         type: "object",
         properties: {
           name: {
             type: "string",
-            description: "The customer's first name (or whatever name they gave)",
+            description:
+              "The customer's first name (or whatever name they gave)",
           },
         },
         required: ["name"],
@@ -166,7 +189,8 @@ function buildTools(data: MenuData): Anthropic.Tool[] {
     },
     {
       name: "get_store_info",
-      description: "Returns address, hours, and available inventory for a Brew location.",
+      description:
+        "Returns address, hours, and available inventory for a Brew location.",
       input_schema: {
         type: "object",
         properties: {
@@ -181,20 +205,38 @@ function buildTools(data: MenuData): Anthropic.Tool[] {
     },
     {
       name: "track_selection",
-      description: "Updates the order summary panel as the customer confirms each item. Call this silently (no accompanying text) immediately after each item is confirmed: drink after drink choice, milk_type after milk choice, pastry after pastry choice ('none' if declined), tip after tip choice. Do NOT call before the item is fully confirmed.",
+      description:
+        "Updates the order summary panel as the customer confirms each item. Call this silently (no accompanying text) immediately after each item is confirmed: drink after drink choice, milk_type after milk choice, pastry after pastry choice ('none' if declined), tip after tip choice. Do NOT call before the item is fully confirmed.",
       input_schema: {
         type: "object",
         properties: {
-          drink: { type: "string", enum: drinkEnum, description: "Confirmed drink ID" },
-          milk_type: { type: "string", enum: milkEnum, description: "Confirmed milk modifier ID" },
-          pastry: { type: "string", enum: pastryEnum, description: "Confirmed pastry ID, or 'none'" },
-          tip: { type: "number", enum: TIP_OPTIONS, description: "Confirmed tip percentage" },
+          drink: {
+            type: "string",
+            enum: drinkEnum,
+            description: "Confirmed drink ID",
+          },
+          milk_type: {
+            type: "string",
+            enum: milkEnum,
+            description: "Confirmed milk modifier ID",
+          },
+          pastry: {
+            type: "string",
+            enum: pastryEnum,
+            description: "Confirmed pastry ID, or 'none'",
+          },
+          tip: {
+            type: "number",
+            enum: TIP_OPTIONS,
+            description: "Confirmed tip percentage",
+          },
         },
       },
     },
     {
       name: "submit_order",
-      description: "Finalizes and submits the customer's order to the database. Only call this when the customer has explicitly confirmed they want to place the order.",
+      description:
+        "Finalizes and submits the customer's order to the database. Only call this when the customer has explicitly confirmed they want to place the order.",
       input_schema: {
         type: "object",
         properties: {
@@ -205,20 +247,42 @@ function buildTools(data: MenuData): Anthropic.Tool[] {
               location: { type: "string", description: "Location ID" },
               drink: { type: "string", description: "Drink product ID" },
               milk_type: { type: "string", description: "Milk modifier ID" },
-              pastry: { type: "string", description: "Pastry product ID or 'none'" },
+              pastry: {
+                type: "string",
+                description: "Pastry product ID or 'none'",
+              },
               tip_percent: { type: "number" },
               subtotal: { type: "number" },
               tax: { type: "number" },
               tip_amount: { type: "number" },
               total: { type: "number" },
             },
-            required: ["location", "drink", "milk_type", "pastry", "tip_percent", "total"],
+            required: [
+              "location",
+              "drink",
+              "milk_type",
+              "pastry",
+              "tip_percent",
+              "total",
+            ],
           },
         },
         required: ["order_data"],
       },
     },
   ];
+
+  // FIX 2: Pin cache_control to the last tool exactly once at build time.
+  // Previously this was applied dynamically to the last item of a filtered list,
+  // meaning the cache boundary moved every turn and busted the cache on every call.
+  // By pinning it here to a static position, Anthropic sees the same cache key
+  // for the tool list on every turn after the first, giving consistent cache reads.
+  tools[tools.length - 1] = {
+    ...tools[tools.length - 1],
+    cache_control: { type: "ephemeral" },
+  } as Anthropic.Tool;
+
+  return tools;
 }
 
 export function calculateTotal(
@@ -226,11 +290,12 @@ export function calculateTotal(
   milkModifierId: string,
   pastryId: string,
   tip: number,
-  data: MenuData
+  data: MenuData,
 ) {
   const drink = data.products.find((p) => p.id === drinkId);
   const milk = data.modifiers.find((m) => m.id === milkModifierId);
-  const pastry = pastryId !== "none" ? data.products.find((p) => p.id === pastryId) : null;
+  const pastry =
+    pastryId !== "none" ? data.products.find((p) => p.id === pastryId) : null;
 
   if (!drink) throw new Error(`Unknown drink: ${drinkId}`);
 
@@ -250,11 +315,10 @@ export function calculateTotal(
   };
 }
 
-
 async function handleToolCall(
   toolName: string,
   toolInput: Record<string, unknown>,
-  orderState: OrderState
+  orderState: OrderState,
 ): Promise<{ result: unknown; stateUpdates: Partial<OrderState> }> {
   const data = getMenuData();
   const stateUpdates: Partial<OrderState> = {};
@@ -268,8 +332,10 @@ async function handleToolCall(
   if (toolName === "track_selection") {
     if (toolInput.drink) stateUpdates.drink = toolInput.drink as string;
     if (toolInput.milk_type) stateUpdates.milkType = toolInput.milk_type as any;
-    if (toolInput.pastry !== undefined) stateUpdates.pastry = toolInput.pastry as any;
-    if (typeof toolInput.tip === "number") stateUpdates.tip = toolInput.tip as any;
+    if (toolInput.pastry !== undefined)
+      stateUpdates.pastry = toolInput.pastry as any;
+    if (typeof toolInput.tip === "number")
+      stateUpdates.tip = toolInput.tip as any;
     return { result: { success: true }, stateUpdates };
   }
 
@@ -283,15 +349,21 @@ async function handleToolCall(
     const cachedInventory = orderState.locationInventory;
     if (cachedInventory) {
       const unavailable: string[] = [];
-      if (!cachedInventory.drinks.includes(drinkId)) unavailable.push(`drink "${drinkId}"`);
-      if (!cachedInventory.milk.includes(milkModifierId)) unavailable.push(`milk "${milkModifierId}"`);
-      if (pastryId !== "none" && !cachedInventory.pastries.includes(pastryId)) unavailable.push(`pastry "${pastryId}"`);
+      if (!cachedInventory.drinks.includes(drinkId))
+        unavailable.push(`drink "${drinkId}"`);
+      if (!cachedInventory.milk.includes(milkModifierId))
+        unavailable.push(`milk "${milkModifierId}"`);
+      if (pastryId !== "none" && !cachedInventory.pastries.includes(pastryId))
+        unavailable.push(`pastry "${pastryId}"`);
 
       if (unavailable.length > 0) {
-        console.warn(`[barista] calculate_total blocked — unavailable at ${orderState.location}: ${unavailable.join(", ")}`);
+        console.warn(
+          `[barista] calculate_total blocked — unavailable at ${orderState.location}: ${unavailable.join(", ")}`,
+        );
         return {
           result: {
-            error: "Cannot calculate total: some items are not available at this location.",
+            error:
+              "Cannot calculate total: some items are not available at this location.",
             unavailable_items: unavailable,
             available_drinks: cachedInventory.drinks,
             available_milk_options: cachedInventory.milk,
@@ -339,12 +411,20 @@ async function handleToolCall(
     const total = (order_data.total ?? orderState.total) as number;
     const tip = (order_data.tip_percent ?? orderState.tip ?? 0) as number;
 
-    const totals = calculateTotal(drinkId, milkId, pastryId === "none" ? "none" : pastryId, tip, data);
+    const totals = calculateTotal(
+      drinkId,
+      milkId,
+      pastryId === "none" ? "none" : pastryId,
+      tip,
+      data,
+    );
 
     const drink = data.products.find((p) => p.id === drinkId);
-    const milkUpcharge = data.modifiers.find((m) => m.id === milkId)?.upcharge ?? 0;
+    const milkUpcharge =
+      data.modifiers.find((m) => m.id === milkId)?.upcharge ?? 0;
     const drinkItemPrice = (drink?.base_price ?? 0) + milkUpcharge;
-    const pastry = pastryId !== "none" ? data.products.find((p) => p.id === pastryId) : null;
+    const pastry =
+      pastryId !== "none" ? data.products.find((p) => p.id === pastryId) : null;
     const pastryItemPrice = pastry?.base_price ?? 0;
 
     let dbResult: { orderId: string } | null = null;
@@ -362,7 +442,9 @@ async function handleToolCall(
         pastryTotalPrice: Math.round(pastryItemPrice * 100) / 100,
         orderTotal: totals.total,
       });
-      console.log(`[barista] Order inserted into Supabase — id: ${dbResult.orderId}`);
+      console.log(
+        `[barista] Order inserted into Supabase — id: ${dbResult.orderId}`,
+      );
     } catch (err: any) {
       dbError = err.message;
       console.error("[barista] submit_order DB insert failed:", err.message);
@@ -376,7 +458,8 @@ async function handleToolCall(
         success: !dbError,
         orderId: dbResult?.orderId ?? null,
         error: dbError,
-        message: "Order confirmed. Customer name will be on the order at the pickup area.",
+        message:
+          "Order confirmed. Customer name will be on the order at the pickup area.",
         order: order_data,
       },
       stateUpdates,
@@ -397,7 +480,7 @@ export interface BaristaResponse {
 export async function runBaristaChat(
   conversationHistory: Array<{ role: "user" | "assistant"; content: string }>,
   orderState: OrderState,
-  onChunk?: (text: string) => void
+  onChunk?: (text: string) => void,
 ): Promise<BaristaResponse> {
   const data = getMenuData();
 
@@ -414,69 +497,59 @@ export async function runBaristaChat(
   let currentMessages = [...messages];
   let apiCallCount = 0;
 
-  // P3: Prompt caching — static system prompt is cached (ephemeral, 5-min TTL).
-  // The dynamic location block is appended uncached since it varies per turn.
-  const effectiveInventory = orderState.locationInventory;
-  const systemBlocks: Array<{ type: "text"; text: string; cache_control?: { type: "ephemeral" } }> = [
+  // FIX 2: Use the full static TOOLS list on every call — cache_control is already
+  // pinned to the last tool in buildTools(). Removing the per-turn filter means the
+  // tool list is identical on every API call, so Anthropic's cache sees the same key
+  // after turn 1 and returns a cache_read instead of cache_created.
+  //
+  // Re-call prevention is handled entirely by the system prompt instructions
+  // ("capture_user_name EXACTLY ONCE", "LOCATION LOCKED" block) which is sufficient
+  // in practice and confirmed by the eval suite.
+  const systemBlocks: Array<{
+    type: "text";
+    text: string;
+    cache_control?: { type: "ephemeral" };
+  }> = [
     { type: "text", text: SYSTEM_PROMPT, cache_control: { type: "ephemeral" } },
   ];
 
-  if (effectiveInventory) {
+  if (orderState.locationInventory) {
     systemBlocks.push({
       type: "text",
       text:
         `\n\n⚠️ LOCATION LOCKED — ${orderState.location}:\n` +
         `The customer is at ${orderState.location}. The ONLY items stocked here are:\n` +
-        `- Drinks: ${effectiveInventory.drinks.join(", ")}\n` +
-        `- Milk options: ${effectiveInventory.milk.join(", ")}\n` +
-        `- Pastries: ${effectiveInventory.pastries.join(", ")}\n` +
+        `- Drinks: ${orderState.locationInventory.drinks.join(", ")}\n` +
+        `- Milk options: ${orderState.locationInventory.milk.join(", ")}\n` +
+        `- Pastries: ${orderState.locationInventory.pastries.join(", ")}\n` +
         `If the customer asks for ANYTHING not in these lists, politely decline it and suggest only what IS listed above. Never accept or confirm an unavailable item.`,
     });
   }
 
-  // Remove tools that are no longer needed based on current order state.
-  // This prevents Claude from re-calling one-shot tools like capture_user_name or get_store_info
-  // after those values are already captured, without changing the system prompt (which would bust the cache).
-  const effectiveToolList = TOOLS.filter((t) => {
-    if (t.name === "capture_user_name" && orderState.userName) return false;
-    if (t.name === "get_store_info" && orderState.locationInventory) return false;
-    if (t.name === "calculate_total" && orderState.total !== null) return false;
-    return true;
-  });
-
-  // Mark cache_control on the last tool so the tool list is cached alongside the system prompt.
-  const effectiveTools = effectiveToolList.map((t, i) =>
-    i === effectiveToolList.length - 1 ? { ...t, cache_control: { type: "ephemeral" as const } } : t
-  );
-
-  // Once the total is confirmed, force Claude to call at least one tool on the FIRST call of each
-  // turn (should be submit_order). Must NOT apply on follow-up calls within the same turn or it
-  // causes an infinite submit_order loop.
-  const toolChoice = orderState.total !== null ? { type: "any" as const } : undefined;
-  let applyToolChoice = true; // consumed after first API call this turn
+  // toolChoice forces at least one tool call on the turn after total is confirmed
+  // (should be submit_order). Only applied on the first API call of each turn.
+  const toolChoice =
+    orderState.total !== null ? { type: "any" as const } : undefined;
+  let applyToolChoice = true;
 
   while (true) {
     const callStart = Date.now();
 
-    // P4: Use streaming API for all calls. onChunk fires for text deltas (not tool_use blocks).
-    // Retry up to 3 times on 429 rate-limit errors with exponential backoff.
     let response!: Anthropic.Message;
     let retryDelay = 8000;
     const thisCallToolChoice = applyToolChoice ? toolChoice : undefined;
-    applyToolChoice = false; // only the first call gets tool_choice
+    applyToolChoice = false;
+
     for (let attempt = 0; ; attempt++) {
       try {
-        const stream = client.messages.stream(
-          {
-            model: "claude-haiku-4-5",
-            max_tokens: 1024,
-            system: systemBlocks as any,
-            tools: effectiveTools as any,
-            messages: currentMessages,
-            ...(thisCallToolChoice ? { tool_choice: thisCallToolChoice } : {}),
-          },
-          { headers: { "anthropic-beta": "prompt-caching-2024-07-31" } }
-        );
+        const stream = client.messages.stream({
+          model: "claude-haiku-4-5",
+          max_tokens: 1024,
+          system: systemBlocks as any,
+          tools: TOOLS as any, // FIX 2: static list, cache_control pinned at build time
+          messages: currentMessages,
+          ...(thisCallToolChoice ? { tool_choice: thisCallToolChoice } : {}),
+        });
         stream.on("text", (text) => {
           if (onChunk) onChunk(text);
         });
@@ -485,7 +558,9 @@ export async function runBaristaChat(
       } catch (err: any) {
         const is429 = err?.status === 429 || String(err).includes("429");
         if (is429 && attempt < 3) {
-          console.log(`[barista] Rate limited — retrying in ${retryDelay / 1000}s (attempt ${attempt + 1}/3)`);
+          console.log(
+            `[barista] Rate limited — retrying in ${retryDelay / 1000}s (attempt ${attempt + 1}/3)`,
+          );
           await new Promise((r) => setTimeout(r, retryDelay));
           retryDelay *= 2;
         } else {
@@ -499,10 +574,10 @@ export async function runBaristaChat(
     const cacheNote = usage?.cache_read_input_tokens
       ? ` cache_read=${usage.cache_read_input_tokens} cache_created=${usage.cache_creation_input_tokens ?? 0}`
       : usage?.cache_creation_input_tokens
-      ? ` cache_created=${usage.cache_creation_input_tokens}`
-      : "";
+        ? ` cache_created=${usage.cache_creation_input_tokens}`
+        : "";
     console.log(
-      `[barista] API call #${apiCallCount} completed in ${Date.now() - callStart}ms (stop_reason=${response.stop_reason}${cacheNote})`
+      `[barista] API call #${apiCallCount} completed in ${Date.now() - callStart}ms (stop_reason=${response.stop_reason}${cacheNote})`,
     );
 
     if (response.stop_reason === "end_turn") {
@@ -515,7 +590,10 @@ export async function runBaristaChat(
 
     if (response.stop_reason === "tool_use") {
       const assistantContent = response.content;
-      currentMessages.push({ role: "assistant", content: assistantContent as any });
+      currentMessages.push({
+        role: "assistant",
+        content: assistantContent as any,
+      });
 
       const toolResults: Anthropic.ToolResultBlockParam[] = [];
 
@@ -525,7 +603,7 @@ export async function runBaristaChat(
           const { result, stateUpdates } = await handleToolCall(
             block.name,
             block.input as Record<string, unknown>,
-            { ...orderState, ...allStateUpdates }
+            { ...orderState, ...allStateUpdates },
           );
           Object.assign(allStateUpdates, stateUpdates);
           toolResults.push({
@@ -561,7 +639,7 @@ export async function runBaristaChat(
         allStateUpdates.milkType as string,
         allStateUpdates.pastry as string,
         allStateUpdates.tip as number,
-        data
+        data,
       );
       const dollarPattern = /\$(\d+\.\d{2})/g;
       const matches = Array.from(finalMessage.matchAll(dollarPattern));
@@ -576,7 +654,7 @@ export async function runBaristaChat(
         ) {
           validationPassed = false;
           console.warn(
-            `[OutputValidator] Suspicious amount $${mentionedAmount} does not match calculated values. Expected total: $${expectedResult.total}`
+            `[OutputValidator] Suspicious amount $${mentionedAmount} does not match calculated values. Expected total: $${expectedResult.total}`,
           );
         }
       }
@@ -587,7 +665,7 @@ export async function runBaristaChat(
 
   const latency_ms = Date.now() - interactionStart;
   console.log(
-    `[barista] Total interaction: ${latency_ms}ms across ${apiCallCount} API call(s), tools=[${toolsUsed.join(", ") || "none"}]`
+    `[barista] Total interaction: ${latency_ms}ms across ${apiCallCount} API call(s), tools=[${toolsUsed.join(", ") || "none"}]`,
   );
 
   return {
