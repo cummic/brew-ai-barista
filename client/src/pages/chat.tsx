@@ -164,12 +164,7 @@ function OrderPanel({ orderState }: { orderState: OrderState }) {
   const [expanded, setExpanded] = useState(false);
   const progress = STAGE_PROGRESS[orderState.stage] || 0;
   const isConfirmed = orderState.stage === "confirmed";
-
-  useEffect(() => {
-    if (orderState.total !== null) {
-      setExpanded(true);
-    }
-  }, [orderState.total]);
+  const orderReady = orderState.total !== null && !isConfirmed;
 
   return (
     <div className={`border-t border-border bg-card transition-all duration-300 ${expanded ? "max-h-72" : "max-h-16"}`}>
@@ -185,8 +180,15 @@ function OrderPanel({ orderState }: { orderState: OrderState }) {
             <Clock className="h-4 w-4 text-primary" />
           )}
           <span className="text-foreground font-semibold">
-            {isConfirmed ? "Order Confirmed" : STAGE_LABELS[orderState.stage]}
+            {isConfirmed
+              ? "Order Confirmed"
+              : orderReady && !expanded
+              ? "Order Ready — tap to review"
+              : STAGE_LABELS[orderState.stage]}
           </span>
+          {orderReady && !expanded && (
+            <span className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+          )}
         </div>
         {expanded ? <ChevronDown className="h-4 w-4 text-muted-foreground" /> : <ChevronUp className="h-4 w-4 text-muted-foreground" />}
       </button>
