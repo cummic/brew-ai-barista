@@ -15,6 +15,12 @@ export async function registerRoutes(
 
   app.post("/api/session", async (req, res) => {
     try {
+      const clientIp = (req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim()
+        ?? req.socket.remoteAddress ?? "unknown";
+      const { allowed } = checkRateLimit(clientIp, 10);
+      if (!allowed) {
+        return res.status(429).json({ error: "Too many session requests. Please wait a moment." });
+      }
       const session = await storage.createSession();
       res.json({ sessionId: session.sessionId, orderState: session.orderState });
     } catch (err) {

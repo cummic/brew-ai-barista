@@ -1,0 +1,26 @@
+> I'm preparing Brew for a private 3–5 person beta. Based on the audit you just completed, I want you to implement only the 5 must-fix items below. Nothing else — no scope creep, no nice-to-haves.
+>
+> For each fix, show me exactly what you plan to change and where before writing a single line of code. Once I approve the plan for all 5, implement them one at a time and confirm each one is done before moving to the next.
+>
+> **Fix 1 — "Card on file" disclaimer**
+> Add a single visible line of text in the UI making clear that no real charges are processed. This is a demo. Find the best place in the frontend to surface this — either above the chat input, in the header, or as a one-time message at the start of the session. Pick the least invasive option.
+>
+> **Fix 2 — Session loss handling**
+> When the frontend gets a 404 on a session ID, it should detect this automatically and offer a clean restart with a message like "Session expired — starting fresh" rather than showing an error or broken state. No session persistence to Supabase needed — just graceful recovery.
+>
+> **Fix 3 — Iteration cap in `runBaristaChat`**
+> Add a maximum of 12 API calls per turn in the `while(true)` loop in `server/barista.ts`. If the cap is hit, break out of the loop and return a safe fallback message rather than looping indefinitely.
+>
+> **Fix 4 — Rate limit `POST /api/session`**
+> Apply the existing `checkRateLimit` from `rateLimit.ts` to the `POST /api/session` endpoint in `routes.ts`. Use IP address as the key. A reasonable limit is 10 new sessions per IP per minute — enough for normal use, blocks trivial abuse.
+>
+> **Fix 5 — Privacy notice**
+> Show a single sentence before the chat starts: "This is a demo. Conversations are logged for development purposes. No real orders or charges are processed." It should be visible but unobtrusive — a dismissible banner or a static line above the chat input. One-time display per session is fine, no need to persist the dismissal.
+>
+> **Constraints:**
+> - Do not touch anything outside the scope of these 5 fixes
+> - Do not refactor, rename, or reorganize any existing code
+> - Do not add any new dependencies
+> - Keep each fix as small as possible
+>
+> Start by giving me the plan for all 5 with file names and line numbers. Wait for my approval before writing any code.

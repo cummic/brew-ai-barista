@@ -1,0 +1,31 @@
+> I'm getting ready to open Brew to beta users. Before making any changes, analyze the current codebase and give me a beta readiness plan.
+>
+> **Context:**
+> Brew is an AI barista ordering app for a Manhattan coffee shop with 3 locations (WTC, Penn Station, Grand Central). It uses React/Vite frontend, Node.js/Express backend, Supabase database, and Claude Haiku for AI conversations. It's currently a portfolio POC running on Replit.
+>
+> **What I need from you:**
+> Do a full codebase audit and give me a plan across these 6 areas. Do not make any changes — analysis and plan only.
+>
+> **1. Security**
+> What's exposed that shouldn't be? Check for API keys in code, unprotected endpoints, missing input sanitization, session vulnerabilities, and anything a malicious beta user could exploit. List every issue with severity (critical/high/medium/low).
+>
+> **2. Stability**
+> What will break under real usage? Check for unhandled errors, missing fallbacks, edge cases in the order flow, and anything that could crash the server or corrupt an order. What happens if Supabase goes down mid-order? What happens if Claude returns an unexpected response?
+>
+> **3. Beta user experience**
+> Walk through the full order flow as a first-time user. What's confusing, missing, or broken? Is there a way to recover from a mistake mid-order? What happens when the session expires? Is there any feedback when something goes wrong?
+>
+> **4. Data & privacy**
+> What user data are we collecting and storing? Is any of it sensitive? Do beta users need to be informed of anything before they start? Is there anything we should not be storing that we currently are?
+>
+> **5. Observability**
+> If something goes wrong in production, can we diagnose it? Check `observability.ts` and the logging throughout the codebase. What are we logging, what are we missing, and what would we wish we had logged after an incident?
+>
+> **6. Beta logistics**
+> How do we control who gets access? Is there any auth or invite gating, or is the app open to anyone with the URL? How do we collect feedback from beta users? How do we kill the app or roll back quickly if something goes wrong?
+>
+> For each area give me: current state, issues found with severity, and specific recommended fixes in priority order.
+>
+> Then give me an overall go/no-go recommendation for beta launch with a list of the things that must be fixed before any real user touches it.
+>
+> Wait for my approval before changing anything.

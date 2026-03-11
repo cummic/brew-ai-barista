@@ -492,6 +492,12 @@ export async function runBaristaChat(
   let applyToolChoice = true;
 
   while (true) {
+    if (apiCallCount >= 12) {
+      console.error("[barista] Hit max iteration cap (12) — breaking to prevent infinite loop");
+      finalMessage = "Sorry, I ran into a problem. Please reset and try again.";
+      break;
+    }
+
     const callStart = Date.now();
 
     let response!: Anthropic.Message;

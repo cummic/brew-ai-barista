@@ -264,6 +264,7 @@ export default function ChatPage() {
   const [isTyping, setIsTyping] = useState(false);
   const [streamingContent, setStreamingContent] = useState<string | null>(null);
   const [isSending, setIsSending] = useState(false);
+  const [showPrivacy, setShowPrivacy] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -338,10 +339,16 @@ export default function ChatPage() {
       if (data.orderState) setOrderState(data.orderState);
     } catch (err: any) {
       setStreamingContent(null);
-      const errorContent = err?.blocked
-        ? "I noticed something unusual in your message. Let's keep things on track — what would you like to order?"
-        : "Something went wrong. Please try again.";
-      setMessages((prev) => [...prev, { role: "assistant", content: errorContent, timestamp: new Date().toISOString() }]);
+      if (err?.status === 404) {
+        setMessages([]);
+        setOrderState(null);
+        createSession.mutate();
+      } else {
+        const errorContent = err?.blocked
+          ? "I noticed something unusual in your message. Let's keep things on track — what would you like to order?"
+          : "Something went wrong. Please try again.";
+        setMessages((prev) => [...prev, { role: "assistant", content: errorContent, timestamp: new Date().toISOString() }]);
+      }
     } finally {
       setIsSending(false);
       setIsTyping(false);
@@ -399,6 +406,13 @@ export default function ChatPage() {
       </header>
 
       <div className="flex-1 overflow-y-auto py-3" data-testid="messages-container">
+        {showPrivacy && (
+          <div className="mx-4 mb-3 flex items-start justify-between gap-2 rounded-lg border border-border bg-muted/50 px-3 py-2 text-xs text-muted-foreground">
+            <span>This is a demo. Conversations are logged for development purposes. No real orders or charges are processed.</span>
+            <button onClick={() => setShowPrivacy(false)} className="flex-shrink-0 hover:text-foreground" aria-label="Dismiss">✕</button>
+          </div>
+        )}
+
         {createSession.isPending && messages.length === 0 && (
           <div className="flex flex-col items-center justify-center h-full gap-3 text-muted-foreground">
             <Coffee className="h-10 w-10 animate-pulse text-primary" />
@@ -465,6 +479,9 @@ export default function ChatPage() {
           </div>
           <p className="mt-1.5 text-center text-xs text-muted-foreground">
             Press Enter to send · Shift+Enter for new line
+          </p>
+          <p className="mt-0.5 text-center text-xs text-muted-foreground/60">
+            Demo only — no real orders or charges are processed.
           </p>
         </div>
       )}
