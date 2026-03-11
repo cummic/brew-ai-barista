@@ -4,3 +4,16 @@ dist
 server/public
 vite.config.ts.*
 *.tar.gz
+
+# Environment variables — never commit real secrets
+.env
+.env.*
+.env*.local
+
+# Replit-internal files
+.local/
+attached_assets/
+.agents/
+.upm/
+.config/
+replit.md
