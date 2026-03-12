@@ -106,6 +106,15 @@ export async function registerRoutes(
             timestamp: new Date().toISOString(),
           };
           await storage.addMessage(sessionId, assistantMsg);
+          logConversation({
+            user_id: session.orderState.userName ?? (clientIp === "unknown" ? "anonymous" : clientIp),
+            session_id: sessionId,
+            prompt: guardrailResult.sanitized || message,
+            response: clarification,
+            latency_ms: 0,
+            tools_used: [],
+            validation_passed: true,
+          });
           return res.json({
             message: clarification,
             orderState: session.orderState,
@@ -128,6 +137,15 @@ export async function registerRoutes(
           timestamp: new Date().toISOString(),
         };
         await storage.addMessage(sessionId, assistantMsg);
+        logConversation({
+          user_id: session.orderState.userName ?? (clientIp === "unknown" ? "anonymous" : clientIp),
+          session_id: sessionId,
+          prompt: guardrailResult.sanitized || message,
+          response: redirect,
+          latency_ms: 0,
+          tools_used: [],
+          validation_passed: true,
+        });
         return res.json({
           message: redirect,
           orderState: session.orderState,
