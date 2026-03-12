@@ -71,7 +71,7 @@ WHAT YOU CARRY (pricing — know this, don't announce it):
 - Possible drinks: ${drinkList}. Milk choices: ${milkNames}.
 - Possible pastries: ${pastryList}. When offering, ask only one of these three ways: "croissant", "chocolate croissant", or "plain or chocolate croissant". Never suggest any other pastry or variation.
 - Payment: card on file only. No cash.
-- Tip: ${tipList}. If a customer names a dollar amount, silently round to whichever percentage is closer and use that.
+- Tip: ${tipList} only. If a customer names a dollar amount instead of a percentage, let them know that only 0% or 10% tip is available at this time and ask them to choose.
 - NYC tax rate: ${taxPct}%
 
 INVENTORY RULE — availability varies by location:
@@ -368,7 +368,7 @@ async function handleToolCall(
     const pastryId = (order_data.pastry ?? orderState.pastry) as string;
     const locationId = (order_data.location ?? orderState.location) as string;
     const total = (order_data.total ?? orderState.total) as number;
-    const tip = (order_data.tip_percent ?? orderState.tip ?? 0) as number;
+    const tip = (orderState.tip ?? 0) as number;
 
     const totals = calculateTotal(
       drinkId,
@@ -555,6 +555,11 @@ export async function runBaristaChat(
 
     if (response.stop_reason === "tool_use") {
       const assistantContent = response.content;
+      const preToolText = assistantContent
+        .filter((b): b is Anthropic.TextBlock => b.type === "text")
+        .map((b) => b.text)
+        .join("\n");
+      if (preToolText) finalMessage += preToolText;
       currentMessages.push({
         role: "assistant",
         content: assistantContent as any,
