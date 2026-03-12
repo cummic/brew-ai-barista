@@ -20,6 +20,22 @@ Here's a reusable pre-deployment checklist prompt you can save and reuse every t
 > ```
 > All existing cases must pass before we proceed. If any cases fail, stop here and fix them. Do not push with failing evals.
 >
+> **Step 3b — Eval suite coverage check**
+> Review the changes made in this session and ask: do any of the following require a new test case?
+>
+> A new guardrail or rule was added
+> A bug was fixed that exposed a gap in the existing test cases
+> A new tool was added or an existing tool's behavior changed
+> A new edge case was discovered during beta testing
+>
+> If a new test case is needed:
+>
+> Propose the test case — the input message sequence, the expected tool calls, and the expected constraints
+> Wait for my approval before adding it to golden_dataset.json
+> Re-run the full eval suite after adding it to confirm the new case passes and no existing cases regressed
+>
+> If no new test case is needed, explain why and move on to Step 4.
+>
 > **Step 4 — README check**
 > Review the changes made in this session and tell me if any of the following need to be updated in the README:
 > - Tool count or tool names
@@ -45,7 +61,3 @@ Here's a reusable pre-deployment checklist prompt you can save and reuse every t
 > 4. Any README sections that were updated
 >
 > Wait for my explicit approval before running `git push`.
-
----
-
-Save this in your project as `DEPLOY_CHECKLIST.md` in the root of your repo — that way it's always in Replit and you can copy/paste it whenever you're ready to ship.
