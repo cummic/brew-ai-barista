@@ -114,11 +114,12 @@ each specifically:
 - **Price hallucination**: An output validator checks every dollar amount in
   Claude's response against the `calculate_total` result and flags mismatches
 - **Bulk order interception**: A code-level check in `routes.ts` detects group or multi-item order language ("for my office", quantities > 1, numbered item lists) and redirects immediately before any API call is made — protecting against the math failures that occur when Claude attempts multi-item order calculations beyond the single-order schema
+- **Dollar tip rejection**: System prompt instructs Claude to decline dollar-amount tips (e.g. "tip $2") and ask the user to choose 0% or 10%, ensuring tip is always a confirmed percentage before `calculate_total` is called
 
-### Eval Suite: 17 Test Cases, 7 Categories
+### Eval Suite: 18 Test Cases, 8 Categories
 
 The eval suite was designed before any evaluation code was written — test cases
-first, runner second. 17 cases across 7 categories — adding a bulk/group order redirect case (e.g. "4 lattes for my office" must be intercepted before any API call is made):
+first, runner second. 18 cases across 8 categories — adding a bulk/group order redirect case (e.g. "4 lattes for my office" must be intercepted before any API call is made):
 
 - **Happy path** (3 cases): Full order flow at each location
 - **Inventory restriction** (4 cases): Items not stocked at a location must
@@ -132,6 +133,8 @@ first, runner second. 17 cases across 7 categories — adding a bulk/group order
 - **Guardrails** (1 case): Off-topic requests must be redirected with no tools
   called
 - **Bulk order redirect** (1 case): Multi-item or group orders intercepted before any API call
+- **Tip validation** (1 case): Dollar-amount tips must be rejected; Claude
+  must ask the user to choose 0% or 10%
 
 The eval runner uses a concurrency-controlled parallel executor and a golden
 dataset (`golden_dataset.json`) that defines expected tool sequences and
@@ -206,7 +209,7 @@ tradeoffs, and system design were mine.
   any inventory lookup), then directed AI to translate those rules into a
   prompt. The distinction matters: the rules reflect product decisions, the
   prompt is implementation.
-- The eval suite — 16 test cases across 6 categories written before a single
+- The eval suite — 18 test cases across 8 categories written before a single
   line of evaluation code existed
 - The two-layer inventory enforcement architecture — I identified that relying
   on Claude alone to enforce inventory wasn't safe enough for order accuracy
@@ -241,6 +244,25 @@ tradeoffs, and system design were mine.
 The skill this project demonstrates isn't coding — it's knowing what to
 build, why to build it that way, how to evaluate whether it's working, and
 how to make principled tradeoffs under constraints.
+
+---
+
+## Build Log — How Brew Evolved
+
+Brew was built iteratively over two weeks. Every row below represents a real decision point — something that broke, something the data showed, or something a real user surfaced that changed the product.
+
+| Phase | What changed | Why |
+|---|---|---|
+| POC | Static JSON menu, single location | Get to demo fast — don't over-engineer before validating the core conversation flow |
+| Data layer | Migrated to Supabase + relational DB | Per-location inventory requirement exposed the limits of a flat data model — menu updates would have required code changes |
+| Quality & eval | Added eval suite — 16 test cases, 6 categories | Needed a repeatable way to measure quality and catch regressions as the prompt and tools evolved |
+| Performance | Implemented prompt caching — pinned `cache_control` to static tool list at build time | Dynamic cache boundary was busting the cache on every API call, paying full input token cost every turn instead of ~10% on cache reads |
+| Performance | Replaced live `track_selection` updates with lazy-load cart model | Latency instrumentation showed 10+ seconds of extra delay per order from redundant API call cycles — order summary now only fetches when the user opens the cart |
+| Performance | Fixed 2s artificial delay firing in dev and demo app | NODE_ENV check was incorrectly scoping the eval delay to all non-production environments, slowing every demo session |
+| Performance | Simplified rate limiting to EVAL_MODE delay | Token bucket added complexity without solving the real problem — a simple environment-gated delay was more reliable and easier to reason about |
+| Beta prep | Beta readiness audit — iteration cap, session rate limiting, privacy notice, card disclaimer | Pre-beta audit identified 5 must-fix issues before any real user touched the app |
+| Beta findings | Added bulk order guardrail | Beta user attempted an office order — Claude tried to calculate 4 simultaneous totals, invented math, and produced wrong prices. Intercepted at the route level before any API call is made |
+| Beta findings | Fixed price calculation bugs | Bugs surfaced during GIF recording — prices and totals were incorrect in specific conversation paths. Added test cases to `golden_dataset.json` to prevent regression |
 
 ---
 
