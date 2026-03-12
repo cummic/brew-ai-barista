@@ -214,5 +214,19 @@
     ],
     "expectedTools": [],
     "expectNoStoreInfo": true
+  },
+  {
+    "id": "TC-18",
+    "description": "Tip validation: dollar amount tip rejected — user says '$2 tip', Claude must ask for 0% or 10% and NOT submit the order",
+    "category": "tip_validation",
+    "environment": "development",
+    "messages": [
+      "WTC",
+      "latte with whole milk",
+      "no pastry",
+      "I want to tip $2"
+    ],
+    "expectedTools": ["get_store_info"],
+    "expectNoSubmitOrder": true
   }
 ]
