@@ -485,6 +485,17 @@ export async function runBaristaChat(
     });
   }
 
+  if (orderState.total !== null && orderState.submittedAt === null) {
+    systemBlocks.push({
+      type: "text",
+      text:
+        `\n\n⚠️ TOTAL ALREADY CALCULATED — $${orderState.total.toFixed(2)}:\n` +
+        `The order total has already been computed. Do NOT call calculate_total again under any circumstances — you already have the number.\n` +
+        `When the customer confirms payment, call submit_order immediately. That is the only valid next tool call.\n` +
+        `If the customer wants to change their order, tell them you will need to start over and collect their new choices before recalculating.`,
+    });
+  }
+
   // toolChoice forces at least one tool call on the turn after total is confirmed
   // (should be submit_order). Only applied on the first API call of each turn.
   const toolChoice =
