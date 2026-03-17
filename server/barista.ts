@@ -508,7 +508,7 @@ export async function runBaristaChat(
     for (let attempt = 0; ; attempt++) {
       try {
         const stream = client.messages.stream({
-          model: "claude-haiku-4-5",
+          model: process.env.BREW_MODEL ?? "claude-haiku-4-5",
           max_tokens: 1024,
           system: systemBlocks as any,
           tools: TOOLS as any, // FIX 2: static list, cache_control pinned at build time
