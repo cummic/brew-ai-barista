@@ -125,7 +125,7 @@ export async function registerRoutes(
       }
 
       // Code-level bulk order guardrail — fires before SSE headers are set, no API call made.
-      const bulkQuantity = /\b([2-9]|[1-9]\d+|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|dozen)\s+(lattes?|cortados?|coffees?|croissants?|pastries|pastry)\b/i;
+      const bulkQuantity = /\b([2-9]|[1-9]\d+|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|dozen)\s+(lattes?|cortados?|coffees?|croissants?|pastries|pastry|drinks?|beverages?|orders?|cups?|items?)\b/i;
       const groupOrder = /\b(for\s+(my\s+)?(office|team|coworkers?|colleagues?|staff|crew|group|meeting|department)|for\s+the\s+(whole\s+)?(office|team|group|crew)|ordering\s+for\s+(everyone|the\s+group|the\s+team|all\s+of\s+us)|for\s+everyone)\b/i;
       const numberedOrMultiPerson = /\b2[.)]\s+\w|\bone\s+for\s+\w+\s+and\s+(?:one|another)\s+for\s+\w+/i;
       const cleanedMsgBulk = guardrailResult.sanitized || message;

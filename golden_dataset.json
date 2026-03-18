@@ -228,5 +228,16 @@
     ],
     "expectedTools": ["get_store_info"],
     "expectNoSubmitOrder": true
+  },
+  {
+    "id": "TC-19",
+    "description": "Bulk order guardrail: written-out number word 'four cortados for my team' must be intercepted before any API call — no tools called",
+    "category": "bulk_order",
+    "environment": "development",
+    "messages": [
+      "four cortados for my team"
+    ],
+    "expectedTools": [],
+    "expectNoStoreInfo": true
   }
 ]
