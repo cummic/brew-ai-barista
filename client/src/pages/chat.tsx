@@ -324,7 +324,7 @@ export default function ChatPage() {
   }, []);
 
   useEffect(() => {
-    if (messages.length > 1 || isTyping || streamingContent !== null) {
+    if (messages.some((m) => m.role === "user")) {
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages, isTyping, streamingContent]);
