@@ -98,35 +98,49 @@ function csvEscape(value: string): string {
 
 function parseCsv(raw: string): string[][] {
   const rows: string[][] = [];
-  const lines = raw.split(/\r?\n/);
-  for (const line of lines) {
-    if (!line.trim()) continue;
-    const fields: string[] = [];
-    let field = "";
-    let inQuote = false;
-    for (let i = 0; i < line.length; i++) {
-      const ch = line[i];
-      if (inQuote) {
-        if (ch === '"' && line[i + 1] === '"') {
-          field += '"';
-          i++;
-        } else if (ch === '"') {
-          inQuote = false;
-        } else {
-          field += ch;
-        }
+  let row: string[] = [];
+  let field = "";
+  let inQuote = false;
+
+  const flushRow = () => {
+    row.push(field);
+    field = "";
+    if (row.some((f) => f.trim() !== "")) {
+      rows.push(row);
+    }
+    row = [];
+  };
+
+  for (let i = 0; i < raw.length; i++) {
+    const ch = raw[i];
+    if (inQuote) {
+      if (ch === '"' && raw[i + 1] === '"') {
+        field += '"';
+        i++;
       } else if (ch === '"') {
-        inQuote = true;
-      } else if (ch === ',') {
-        fields.push(field);
-        field = "";
+        inQuote = false;
       } else {
         field += ch;
       }
+    } else if (ch === '"') {
+      inQuote = true;
+    } else if (ch === ',') {
+      row.push(field);
+      field = "";
+    } else if (ch === '\r' && raw[i + 1] === '\n') {
+      i++;
+      flushRow();
+    } else if (ch === '\n' || ch === '\r') {
+      flushRow();
+    } else {
+      field += ch;
     }
-    fields.push(field);
-    rows.push(fields);
   }
+
+  if (field !== "" || row.length > 0) {
+    flushRow();
+  }
+
   return rows;
 }
 
@@ -571,17 +585,22 @@ async function main() {
     process.exit(1);
   }
 
-  if (mode !== "compare") {
+  if (mode === "export" || mode === "judge") {
     await initMenu();
   }
 
-  const raw = readFileSync(join(process.cwd(), "golden_dataset.json"), "utf-8");
-  const testCases: TestCase[] = JSON.parse(raw);
+  if (mode === "export" || mode === "judge") {
+    const raw = readFileSync(
+      join(process.cwd(), "golden_dataset.json"),
+      "utf-8",
+    );
+    const testCases: TestCase[] = JSON.parse(raw);
 
-  if (mode === "export") {
-    await modeExport(testCases);
-  } else if (mode === "judge") {
-    await modeJudge(testCases);
+    if (mode === "export") {
+      await modeExport(testCases);
+    } else {
+      await modeJudge(testCases);
+    }
   } else if (mode === "import-human") {
     const csvPath = process.argv[3];
     if (!csvPath) {
