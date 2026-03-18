@@ -8,8 +8,8 @@
       "pass": true,
       "reason": "All checks passed",
       "toolsUsed": [
-        "capture_user_name",
         "get_store_info",
+        "capture_user_name",
         "calculate_total",
         "submit_order"
       ],
@@ -19,7 +19,7 @@
           "userMessage": "Hello",
           "assistantResponse": "Hey! I'm Brew. What's your name?",
           "toolsUsed": [],
-          "latencyMs": 800
+          "latencyMs": 1681
         },
         {
           "role": "bootstrap",
@@ -28,40 +28,40 @@
           "toolsUsed": [
             "capture_user_name"
           ],
-          "latencyMs": 1364
+          "latencyMs": 5577
         },
         {
           "role": "test",
           "userMessage": "WTC",
-          "assistantResponse": "Perfect. So what can I get for you — Latte or Cortado?",
+          "assistantResponse": "Great! So what can I get started for you — latte or cortado?",
           "toolsUsed": [
-            "capture_user_name",
-            "get_store_info"
+            "get_store_info",
+            "capture_user_name"
           ],
-          "latencyMs": 1910
+          "latencyMs": 2226
         },
         {
           "role": "test",
           "userMessage": "latte with whole milk please",
-          "assistantResponse": "Great! Want to add a pastry? We've got croissants and chocolate croissants.",
+          "assistantResponse": "Perfect. Want to add a pastry? We've got croissants or chocolate croissants.",
           "toolsUsed": [],
-          "latencyMs": 1094
+          "latencyMs": 688
         },
         {
           "role": "test",
           "userMessage": "no pastry thanks",
-          "assistantResponse": "All set. How do you want to tip — 0% or 10%?",
+          "assistantResponse": "Got it. How about your tip — 0% or 10%?",
           "toolsUsed": [],
-          "latencyMs": 760
+          "latencyMs": 895
         },
         {
           "role": "test",
           "userMessage": "no tip",
-          "assistantResponse": "That's $5.99 total. Sound good? We'll charge the card on file.",
+          "assistantResponse": "Your total comes to $5.99. Sound good? We'll charge your card on file.",
           "toolsUsed": [
             "calculate_total"
           ],
-          "latencyMs": 1875
+          "latencyMs": 2342
         },
         {
           "role": "test",
@@ -70,10 +70,10 @@
           "toolsUsed": [
             "submit_order"
           ],
-          "latencyMs": 2507
+          "latencyMs": 3422
         }
       ],
-      "totalLatencyMs": 10310
+      "totalLatencyMs": 16831
     },
     {
       "model": "claude-haiku-4-5",
@@ -94,7 +94,7 @@
           "userMessage": "Hello",
           "assistantResponse": "Hey! I'm Brew. What's your name?",
           "toolsUsed": [],
-          "latencyMs": 719
+          "latencyMs": 1194
         },
         {
           "role": "bootstrap",
@@ -103,52 +103,52 @@
           "toolsUsed": [
             "capture_user_name"
           ],
-          "latencyMs": 1456
+          "latencyMs": 2630
         },
         {
           "role": "test",
           "userMessage": "Grand Central",
-          "assistantResponse": "Great! So what can I get you — a latte or a cortado?",
+          "assistantResponse": "Great! So what can I get you — Latte or Cortado?",
           "toolsUsed": [
             "get_store_info",
             "capture_user_name"
           ],
-          "latencyMs": 2001
+          "latencyMs": 3226
         },
         {
           "role": "test",
           "userMessage": "cortado with almond milk",
-          "assistantResponse": "Perfect. You want a cortado with almond milk. Want to add a pastry — we've got croissants or chocolate croissants?",
+          "assistantResponse": "Perfect, cortado with almond milk. Want to add a pastry — we've got croissants or chocolate croissants?",
           "toolsUsed": [],
-          "latencyMs": 822
+          "latencyMs": 945
         },
         {
           "role": "test",
           "userMessage": "yes I'll take a chocolate croissant",
-          "assistantResponse": "Awesome. And how are you feeling on tip — 0% or 10%?",
+          "assistantResponse": "Nice choice. And how do you want to tip — 0% or 10%?",
           "toolsUsed": [],
-          "latencyMs": 820
+          "latencyMs": 837
         },
         {
           "role": "test",
           "userMessage": "10 percent tip",
-          "assistantResponse": "Perfect, Eval. Your total comes to $10.48. We'll charge your card on file — sound good?",
+          "assistantResponse": "Awesome. So your total comes to $10.48 — that's your cortado with almond milk and a chocolate croissant, plus tax and a 10% tip. Sound good?",
           "toolsUsed": [
             "calculate_total"
           ],
-          "latencyMs": 1959
+          "latencyMs": 2008
         },
         {
           "role": "test",
           "userMessage": "yes charge it",
-          "assistantResponse": "You're all set! Look for your name at the pickup area at Grand Central. Should be ready in a few minutes. Thanks, Eval!",
+          "assistantResponse": "You're all set, Eval! Look for your name at the pickup area at Grand Central — should be ready in about 5 minutes. Thanks!",
           "toolsUsed": [
             "submit_order"
           ],
-          "latencyMs": 2724
+          "latencyMs": 2753
         }
       ],
-      "totalLatencyMs": 10501
+      "totalLatencyMs": 13593
     },
     {
       "model": "claude-haiku-4-5",
@@ -158,8 +158,8 @@
       "pass": true,
       "reason": "All checks passed",
       "toolsUsed": [
-        "capture_user_name",
         "get_store_info",
+        "capture_user_name",
         "calculate_total",
         "submit_order"
       ],
@@ -169,7 +169,7 @@
           "userMessage": "Hello",
           "assistantResponse": "Hey! I'm Brew. What's your name?",
           "toolsUsed": [],
-          "latencyMs": 674
+          "latencyMs": 1561
         },
         {
           "role": "bootstrap",
@@ -178,52 +178,52 @@
           "toolsUsed": [
             "capture_user_name"
           ],
-          "latencyMs": 8696
+          "latencyMs": 1561
         },
         {
           "role": "test",
           "userMessage": "Penn Station",
-          "assistantResponse": "Perfect! So at Penn Station we've got:\n\nDrinks: Latte $5.50\n\nMilk Options: Whole Milk Included, 2% Milk Included\n\nPastries: Croissant $3.50\n\nWhat can I get started for you?",
+          "assistantResponse": "Great! Here's what we've got at Penn Station:\n\nDrinks: Latte $5.50\n\nMilk Options: Whole Milk Included, 2% Milk Included\n\nPastries: Croissant $3.50\n\nWhat can I get started for you?",
           "toolsUsed": [
-            "capture_user_name",
-            "get_store_info"
+            "get_store_info",
+            "capture_user_name"
           ],
-          "latencyMs": 5193
+          "latencyMs": 5877
         },
         {
           "role": "test",
           "userMessage": "latte with 2% milk",
-          "assistantResponse": "Got it — latte with 2% milk. You want a croissant with that?",
+          "assistantResponse": "Perfect, latte with 2% milk. Want to add a croissant?",
           "toolsUsed": [],
-          "latencyMs": 6224
+          "latencyMs": 706
         },
         {
           "role": "test",
           "userMessage": "yes a croissant please",
-          "assistantResponse": "Nice. And for tip — would you like to go with 0% or 10%?",
+          "assistantResponse": "Awesome. And how do you want to tip — 0% or 10%?",
           "toolsUsed": [],
-          "latencyMs": 760
+          "latencyMs": 6228
         },
         {
           "role": "test",
           "userMessage": "no tip",
-          "assistantResponse": "Your total is $9.80. We'll charge the card on file — sound good?",
+          "assistantResponse": "Your total is $9.80. We'll charge your card on file — sound good?",
           "toolsUsed": [
             "calculate_total"
           ],
-          "latencyMs": 7956
+          "latencyMs": 6621
         },
         {
           "role": "test",
           "userMessage": "yes go ahead",
-          "assistantResponse": "Perfect! Look for your name at the pickup area at Penn Station. Should be ready in about 5 minutes. Thanks, Eval!",
+          "assistantResponse": "You're all set, Eval! Look for your name at the pickup area at Penn Station. Should be ready in about 5 minutes. Thanks!",
           "toolsUsed": [
             "submit_order"
           ],
-          "latencyMs": 7519
+          "latencyMs": 6071
         }
       ],
-      "totalLatencyMs": 37022
+      "totalLatencyMs": 28625
     },
     {
       "model": "claude-haiku-4-5",
@@ -242,7 +242,7 @@
           "userMessage": "Hello",
           "assistantResponse": "Hey! I'm Brew. What's your name?",
           "toolsUsed": [],
-          "latencyMs": 7387
+          "latencyMs": 5921
         },
         {
           "role": "bootstrap",
@@ -251,27 +251,27 @@
           "toolsUsed": [
             "capture_user_name"
           ],
-          "latencyMs": 4704
+          "latencyMs": 6624
         },
         {
           "role": "test",
           "userMessage": "Penn Station",
-          "assistantResponse": "Perfect, Eval. So what can I get you — Latte?",
+          "assistantResponse": "Perfect! So at Penn Station we've got:\n\nDrinks: Latte $5.50\n\nMilk Options: Whole Milk Included, 2% Milk Included\n\nPastries: Croissant $3.50\n\nWhat can I get started for you?",
           "toolsUsed": [
             "capture_user_name",
             "get_store_info"
           ],
-          "latencyMs": 5502
+          "latencyMs": 6603
         },
         {
           "role": "test",
           "userMessage": "I'd like a cortado please",
-          "assistantResponse": "I hear you, but we're actually only carrying lattes here at Penn Station right now. Can I get you a latte instead?",
+          "assistantResponse": "We don't carry cortados at Penn Station — just lattes. Want me to hook you up with a latte instead?",
           "toolsUsed": [],
-          "latencyMs": 6161
+          "latencyMs": 4390
         }
       ],
-      "totalLatencyMs": 23755
+      "totalLatencyMs": 23538
     },
     {
       "model": "claude-haiku-4-5",
@@ -290,36 +290,36 @@
           "userMessage": "Hello",
           "assistantResponse": "Hey! I'm Brew. What's your name?",
           "toolsUsed": [],
-          "latencyMs": 731
+          "latencyMs": 890
         },
         {
           "role": "bootstrap",
           "userMessage": "Eval",
-          "assistantResponse": "Nice to meet you, Eval. Which location are you at — World Trade Center, Penn Station, or Grand Central?",
+          "assistantResponse": "Nice to meet you, Eval! Which location are you at — World Trade Center, Penn Station, or Grand Central?",
           "toolsUsed": [
             "capture_user_name"
           ],
-          "latencyMs": 6661
+          "latencyMs": 6752
         },
         {
           "role": "test",
           "userMessage": "Penn Station",
-          "assistantResponse": "Great, Eval. Here's what we've got at Penn Station:\n\nDrinks: Latte $5.50\n\nMilk Options: Whole Milk Included, 2% Milk Included\n\nPastries: Croissant $3.50\n\nSo what can I get started for you today?",
+          "assistantResponse": "Great! Here's what we've got at Penn Station:\n\nDrinks: Latte $5.50\n\nMilk Options: Whole Milk Included, 2% Milk Included\n\nPastries: Croissant $3.50\n\nWhat can I get started for you?",
           "toolsUsed": [
             "get_store_info",
             "capture_user_name"
           ],
-          "latencyMs": 7605
+          "latencyMs": 7421
         },
         {
           "role": "test",
           "userMessage": "latte with almond milk please",
-          "assistantResponse": "Hey, we don't carry almond milk here at Penn Station. But I've got whole milk or 2% — which would you prefer?",
+          "assistantResponse": "Hey, we don't carry almond milk here at Penn Station — just whole or 2%. Which one works for you?",
           "toolsUsed": [],
-          "latencyMs": 6040
+          "latencyMs": 5983
         }
       ],
-      "totalLatencyMs": 21037
+      "totalLatencyMs": 21046
     },
     {
       "model": "claude-haiku-4-5",
@@ -330,7 +330,8 @@
       "reason": "All checks passed",
       "toolsUsed": [
         "capture_user_name",
-        "get_store_info"
+        "get_store_info",
+        "capture_user_name"
       ],
       "turns": [
         {
@@ -338,43 +339,45 @@
           "userMessage": "Hello",
           "assistantResponse": "Hey! I'm Brew. What's your name?",
           "toolsUsed": [],
-          "latencyMs": 842
+          "latencyMs": 822
         },
         {
           "role": "bootstrap",
           "userMessage": "Eval",
-          "assistantResponse": "Nice to meet you, Eval. Which location are you at — World Trade Center, Penn Station, or Grand Central?",
+          "assistantResponse": "Nice to meet you, Eval! Which location are you at — World Trade Center, Penn Station, or Grand Central?",
           "toolsUsed": [
             "capture_user_name"
           ],
-          "latencyMs": 7400
+          "latencyMs": 7171
         },
         {
           "role": "test",
           "userMessage": "Penn Station",
-          "assistantResponse": "Great! So at Penn Station we've got:\n\nDrinks: Latte $5.50\n\nMilk Options: Whole Milk Included, 2% Milk Included\n\nPastries: Croissant $3.50\n\nWhat can I get started for you?",
+          "assistantResponse": "Great! Here's what we've got at Penn Station:\n\nDrinks: Latte $5.50\n\nMilk Options: Whole Milk Included, 2% Milk Included\n\nPastries: Croissant $3.50\n\nSo what can I get started for you — latte?",
           "toolsUsed": [
             "capture_user_name",
             "get_store_info"
           ],
-          "latencyMs": 6362
+          "latencyMs": 7288
         },
         {
           "role": "test",
           "userMessage": "latte with whole milk",
-          "assistantResponse": "Perfect. You want a latte with whole milk. Want to add a croissant to that?",
-          "toolsUsed": [],
-          "latencyMs": 6001
+          "assistantResponse": "Perfect, latte with whole milk. Want to grab a croissant with that?",
+          "toolsUsed": [
+            "capture_user_name"
+          ],
+          "latencyMs": 6253
         },
         {
           "role": "test",
           "userMessage": "I'll have a chocolate croissant",
-          "assistantResponse": "Hey, we don't have chocolate croissant here at Penn Station — just the regular croissant. Want that instead?",
+          "assistantResponse": "Oh, we don't carry chocolate croissants here at Penn Station — just the plain croissant. Want to go with that instead?",
           "toolsUsed": [],
-          "latencyMs": 800
+          "latencyMs": 6227
         }
       ],
-      "totalLatencyMs": 21406
+      "totalLatencyMs": 27761
     },
     {
       "model": "claude-haiku-4-5",
@@ -390,26 +393,26 @@
           "userMessage": "Hello",
           "assistantResponse": "Hey! I'm Brew. What's your name?",
           "toolsUsed": [],
-          "latencyMs": 5905
+          "latencyMs": 4160
         },
         {
           "role": "bootstrap",
           "userMessage": "Eval",
-          "assistantResponse": "Nice to meet you, Eval! Which location are you at — World Trade Center, Penn Station, or Grand Central?",
+          "assistantResponse": "Nice to meet you, Eval. Which location are you at — World Trade Center, Penn Station, or Grand Central?",
           "toolsUsed": [
             "capture_user_name"
           ],
-          "latencyMs": 4697
+          "latencyMs": 3518
         },
         {
           "role": "test",
           "userMessage": "I'm at the train station, can I order?",
-          "assistantResponse": "I hear you, but I need to know which specific station — are you at World Trade Center, Penn Station, or Grand Central?",
+          "assistantResponse": "I got you — but I need to know which specific station. Are you at World Trade Center, Penn Station, or Grand Central?",
           "toolsUsed": [],
-          "latencyMs": 6179
+          "latencyMs": 6025
         }
       ],
-      "totalLatencyMs": 16781
+      "totalLatencyMs": 13703
     },
     {
       "model": "claude-haiku-4-5",
@@ -425,7 +428,7 @@
           "userMessage": "Hello",
           "assistantResponse": "Hey! I'm Brew. What's your name?",
           "toolsUsed": [],
-          "latencyMs": 1204
+          "latencyMs": 6136
         },
         {
           "role": "bootstrap",
@@ -434,17 +437,17 @@
           "toolsUsed": [
             "capture_user_name"
           ],
-          "latencyMs": 7884
+          "latencyMs": 1934
         },
         {
           "role": "test",
           "userMessage": "I'm downtown near the transit hub",
-          "assistantResponse": "Got it, but I need to know the exact spot. Are you at World Trade Center, Penn Station, or Grand Central?",
+          "assistantResponse": "Got it, but I need the exact name. Are you at World Trade Center, Penn Station, or Grand Central?",
           "toolsUsed": [],
-          "latencyMs": 4544
+          "latencyMs": 6274
         }
       ],
-      "totalLatencyMs": 13632
+      "totalLatencyMs": 14344
     },
     {
       "model": "claude-haiku-4-5",
@@ -454,8 +457,8 @@
       "pass": true,
       "reason": "All checks passed",
       "toolsUsed": [
-        "get_store_info",
         "capture_user_name",
+        "get_store_info",
         "calculate_total",
         "submit_order"
       ],
@@ -465,61 +468,61 @@
           "userMessage": "Hello",
           "assistantResponse": "Hey! I'm Brew. What's your name?",
           "toolsUsed": [],
-          "latencyMs": 817
+          "latencyMs": 724
         },
         {
           "role": "bootstrap",
           "userMessage": "Eval",
-          "assistantResponse": "Nice to meet you, Eval! Which Brew location are you at — World Trade Center, Penn Station, or Grand Central?",
+          "assistantResponse": "Nice to meet you, Eval! Which location are you at — World Trade Center, Penn Station, or Grand Central?",
           "toolsUsed": [
             "capture_user_name"
           ],
-          "latencyMs": 8807
+          "latencyMs": 8790
         },
         {
           "role": "test",
           "userMessage": "WTC",
-          "assistantResponse": "",
+          "assistantResponse": "Perfect, Eval. So what can I get you — latte or cortado?",
           "toolsUsed": [
-            "get_store_info",
-            "capture_user_name"
+            "capture_user_name",
+            "get_store_info"
           ],
-          "latencyMs": 10090
+          "latencyMs": 6501
         },
         {
           "role": "test",
           "userMessage": "latte with almond milk",
-          "assistantResponse": "Perfect! So a latte with almond milk. Want to add a pastry — we've got croissants or chocolate croissants?",
+          "assistantResponse": "Nice choice! Want to add a croissant or chocolate croissant, or just the latte?",
           "toolsUsed": [],
-          "latencyMs": 5024
+          "latencyMs": 5537
         },
         {
           "role": "test",
           "userMessage": "yes a croissant please",
-          "assistantResponse": "Great! And for the tip — would you like to go with 0% or 10%?",
+          "assistantResponse": "Got it — latte with almond milk and a croissant. How do you want to tip, 0% or 10%?",
           "toolsUsed": [],
-          "latencyMs": 778
+          "latencyMs": 903
         },
         {
           "role": "test",
           "userMessage": "10% tip",
-          "assistantResponse": "Perfect, Eval. Your total comes to $11.68 — that's your latte with almond milk, croissant, tax, and 10% tip. We'll charge your card on file. Sound good?",
+          "assistantResponse": "Perfect. Your total is $11.68 — that's being charged to your card on file. Sound good?",
           "toolsUsed": [
             "calculate_total"
           ],
-          "latencyMs": 7291
+          "latencyMs": 6815
         },
         {
           "role": "test",
           "userMessage": "yes charge my card",
-          "assistantResponse": "You're all set! Look for your name at the pickup area at WTC. Your order should be ready in about 5 minutes. Thanks, Eval!",
+          "assistantResponse": "You're all set, Eval! Look for your name at the pickup area at WTC — should be ready in about 5 minutes. Thanks!",
           "toolsUsed": [
             "submit_order"
           ],
-          "latencyMs": 8083
+          "latencyMs": 8393
         }
       ],
-      "totalLatencyMs": 40890
+      "totalLatencyMs": 37663
     },
     {
       "model": "claude-haiku-4-5",
@@ -535,26 +538,26 @@
           "userMessage": "Hello",
           "assistantResponse": "Hey! I'm Brew. What's your name?",
           "toolsUsed": [],
-          "latencyMs": 6114
+          "latencyMs": 4883
         },
         {
           "role": "bootstrap",
           "userMessage": "Eval",
-          "assistantResponse": "Nice to meet you, Eval! Which location are you at — World Trade Center, Penn Station, or Grand Central?",
+          "assistantResponse": "Nice to meet you, Eval. Which location are you at — World Trade Center, Penn Station, or Grand Central?",
           "toolsUsed": [
             "capture_user_name"
           ],
-          "latencyMs": 6622
+          "latencyMs": 5794
         },
         {
           "role": "test",
           "userMessage": "Can you help me figure out the subway map?",
-          "assistantResponse": "Ha, I'd love to help, but that's not really my thing — I'm just here to get you a good coffee! Let me know which location you're at and we'll get you sorted.",
+          "assistantResponse": "Ha, I wish I could help with that! I'm just here for coffee though. So which Brew location are you at?",
           "toolsUsed": [],
-          "latencyMs": 932
+          "latencyMs": 6398
         }
       ],
-      "totalLatencyMs": 13668
+      "totalLatencyMs": 17075
     },
     {
       "model": "claude-haiku-4-5",
@@ -574,7 +577,7 @@
           "userMessage": "Hello",
           "assistantResponse": "Hey! I'm Brew. What's your name?",
           "toolsUsed": [],
-          "latencyMs": 5964
+          "latencyMs": 958
         },
         {
           "role": "bootstrap",
@@ -583,29 +586,29 @@
           "toolsUsed": [
             "capture_user_name"
           ],
-          "latencyMs": 6658
+          "latencyMs": 5320
         },
         {
           "role": "test",
           "userMessage": "WTC",
-          "assistantResponse": "Great, we're all set at WTC. So what can I get you — a Latte or Cortado?",
+          "assistantResponse": "Perfect! So what can I get you — latte or cortado?",
           "toolsUsed": [
             "capture_user_name",
             "get_store_info"
           ],
-          "latencyMs": 7528
+          "latencyMs": 7327
         },
         {
           "role": "test",
           "userMessage": "what's on the menu?",
-          "assistantResponse": "Drinks: Latte $5.50, Cortado $4.00\n\nMilk Options: Whole Milk Included, 2% Milk Included, Almond Milk +$0.75\n\nPastries: Croissant $3.50, Chocolate Croissant $4.00",
+          "assistantResponse": "Drinks: Latte $5.50, Cortado $4.00\n\nMilk Options: Whole Milk Included, 2% Milk Included, Almond Milk +$0.75\n\nPastries: Croissant $3.50, Chocolate Croissant $4.00\n\nWhat sounds good?",
           "toolsUsed": [
             "get_store_info"
           ],
-          "latencyMs": 7246
+          "latencyMs": 9510
         }
       ],
-      "totalLatencyMs": 27396
+      "totalLatencyMs": 23115
     },
     {
       "model": "claude-haiku-4-5",
@@ -624,7 +627,7 @@
           "userMessage": "Hello",
           "assistantResponse": "Hey! I'm Brew. What's your name?",
           "toolsUsed": [],
-          "latencyMs": 917
+          "latencyMs": 1523
         },
         {
           "role": "bootstrap",
@@ -633,27 +636,27 @@
           "toolsUsed": [
             "capture_user_name"
           ],
-          "latencyMs": 6902
+          "latencyMs": 10113
         },
         {
           "role": "test",
           "userMessage": "Penn Station",
-          "assistantResponse": "Perfect! So at Penn Station we've got:\n\nDrinks: Latte $5.50\n\nMilk Options: Whole Milk Included, 2% Milk Included\n\nPastries: Croissant $3.50\n\nWhat can I get started for you?",
+          "assistantResponse": "Perfect, you're all set at Penn Station. So what can I get you — latte or cortado?",
           "toolsUsed": [
             "capture_user_name",
             "get_store_info"
           ],
-          "latencyMs": 8596
+          "latencyMs": 5963
         },
         {
           "role": "test",
           "userMessage": "can I see the price list?",
-          "assistantResponse": "You're looking at it! That's what we've got at Penn Station right now. Want to grab a latte?",
+          "assistantResponse": "Of course! Here's what we've got at Penn Station:\n\nDrinks: Latte $5.50, Cortado $4.00\nMilk Options: Whole Milk Included, 2% Milk Included\nPastries: Croissant $3.50\n\nWhat sounds good?",
           "toolsUsed": [],
-          "latencyMs": 3966
+          "latencyMs": 1001
         }
       ],
-      "totalLatencyMs": 20381
+      "totalLatencyMs": 18600
     },
     {
       "model": "claude-haiku-4-5",
@@ -669,7 +672,7 @@
           "userMessage": "Hello",
           "assistantResponse": "Hey! I'm Brew. What's your name?",
           "toolsUsed": [],
-          "latencyMs": 3887
+          "latencyMs": 6054
         },
         {
           "role": "bootstrap",
@@ -678,17 +681,17 @@
           "toolsUsed": [
             "capture_user_name"
           ],
-          "latencyMs": 6674
+          "latencyMs": 6810
         },
         {
           "role": "test",
           "userMessage": "what's on the menu?",
-          "assistantResponse": "I'll show you what we've got once you let me know which location you're at. Are you at World Trade Center, Penn Station, or Grand Central?",
+          "assistantResponse": "I gotta know which location you're at first so I can tell you what we've got there. Are you at World Trade Center, Penn Station, or Grand Central?",
           "toolsUsed": [],
-          "latencyMs": 3813
+          "latencyMs": 923
         }
       ],
-      "totalLatencyMs": 14374
+      "totalLatencyMs": 13787
     },
     {
       "model": "claude-haiku-4-5",
@@ -704,26 +707,26 @@
           "userMessage": "Hello",
           "assistantResponse": "Hey! I'm Brew. What's your name?",
           "toolsUsed": [],
-          "latencyMs": 806
+          "latencyMs": 6024
         },
         {
           "role": "bootstrap",
           "userMessage": "Eval",
-          "assistantResponse": "Nice to meet you, Eval! Which Brew location are you at — World Trade Center, Penn Station, or Grand Central?",
+          "assistantResponse": "Nice to meet you, Eval. Which location are you at — World Trade Center, Penn Station, or Grand Central?",
           "toolsUsed": [
             "capture_user_name"
           ],
-          "latencyMs": 6714
+          "latencyMs": 6077
         },
         {
           "role": "test",
           "userMessage": "show me the menu for all three locations",
-          "assistantResponse": "I can only show you one location at a time. Which one are you actually at right now?",
+          "assistantResponse": "I can only show you the menu for one location at a time. Which one are you actually at right now?",
           "toolsUsed": [],
-          "latencyMs": 6327
+          "latencyMs": 3078
         }
       ],
-      "totalLatencyMs": 13847
+      "totalLatencyMs": 15179
     },
     {
       "model": "claude-haiku-4-5",
@@ -739,26 +742,26 @@
           "userMessage": "Hello",
           "assistantResponse": "Hey! I'm Brew. What's your name?",
           "toolsUsed": [],
-          "latencyMs": 766
+          "latencyMs": 2278
         },
         {
           "role": "bootstrap",
           "userMessage": "Eval",
-          "assistantResponse": "Nice to meet you, Eval! Which Brew location are you at — World Trade Center, Penn Station, or Grand Central?",
+          "assistantResponse": "Nice to meet you, Eval! Which location are you at — World Trade Center, Penn Station, or Grand Central?",
           "toolsUsed": [
             "capture_user_name"
           ],
-          "latencyMs": 8668
+          "latencyMs": 8743
         },
         {
           "role": "test",
           "userMessage": "I'm at the station, what's on the price list?",
-          "assistantResponse": "Just need to pin this down — are you at Penn Station or Grand Central? Both are major stations, so I want to make sure I've got the right spot.",
+          "assistantResponse": "I just need to know which station — are you at Penn Station or Grand Central?",
           "toolsUsed": [],
-          "latencyMs": 3971
+          "latencyMs": 1677
         }
       ],
-      "totalLatencyMs": 13405
+      "totalLatencyMs": 12698
     },
     {
       "model": "claude-haiku-4-5",
@@ -777,36 +780,36 @@
           "userMessage": "Hello",
           "assistantResponse": "Hey! I'm Brew. What's your name?",
           "toolsUsed": [],
-          "latencyMs": 965
+          "latencyMs": 4943
         },
         {
           "role": "bootstrap",
           "userMessage": "Eval",
-          "assistantResponse": "Nice to meet you, Eval! Which Brew location are you at — World Trade Center, Penn Station, or Grand Central?",
+          "assistantResponse": "Nice to meet you, Eval! Which location are you at — World Trade Center, Penn Station, or Grand Central?",
           "toolsUsed": [
             "capture_user_name"
           ],
-          "latencyMs": 6761
+          "latencyMs": 6669
         },
         {
           "role": "test",
           "userMessage": "Grand Central",
-          "assistantResponse": "Great, Eval! So we've got Lattes and Cortados here. What can I get started for you?",
+          "assistantResponse": "Great! So we've got Lattes and Cortados here. What sounds good to you?",
           "toolsUsed": [
             "get_store_info",
             "capture_user_name"
           ],
-          "latencyMs": 9198
+          "latencyMs": 6698
         },
         {
           "role": "test",
           "userMessage": "I'd like a cortado please",
-          "assistantResponse": "Perfect! What milk do you want in that — whole, 2%, or almond?",
+          "assistantResponse": "Perfect. What kind of milk — whole, 2%, or almond?",
           "toolsUsed": [],
-          "latencyMs": 3690
+          "latencyMs": 4105
         }
       ],
-      "totalLatencyMs": 20614
+      "totalLatencyMs": 22415
     },
     {
       "model": "claude-haiku-4-5",
@@ -822,7 +825,7 @@
           "userMessage": "Hello",
           "assistantResponse": "Hey! I'm Brew. What's your name?",
           "toolsUsed": [],
-          "latencyMs": 626
+          "latencyMs": 3028
         },
         {
           "role": "bootstrap",
@@ -831,17 +834,17 @@
           "toolsUsed": [
             "capture_user_name"
           ],
-          "latencyMs": 8666
+          "latencyMs": 5101
         },
         {
           "role": "test",
           "userMessage": "4 lattes for my office",
-          "assistantResponse": "Got it! Just to confirm — which location are you picking up at? World Trade Center, Penn Station, or Grand Central?",
+          "assistantResponse": "Got it! So you're ordering 4 lattes. Just need to confirm — which location are you picking them up from? World Trade Center, Penn Station, or Grand Central?",
           "toolsUsed": [],
-          "latencyMs": 3965
+          "latencyMs": 5181
         }
       ],
-      "totalLatencyMs": 13257
+      "totalLatencyMs": 13310
     },
     {
       "model": "claude-haiku-4-5",
@@ -851,8 +854,8 @@
       "pass": true,
       "reason": "All checks passed",
       "toolsUsed": [
-        "capture_user_name",
-        "get_store_info"
+        "get_store_info",
+        "capture_user_name"
       ],
       "turns": [
         {
@@ -860,7 +863,7 @@
           "userMessage": "Hello",
           "assistantResponse": "Hey! I'm Brew. What's your name?",
           "toolsUsed": [],
-          "latencyMs": 3753
+          "latencyMs": 4101
         },
         {
           "role": "bootstrap",
@@ -869,41 +872,76 @@
           "toolsUsed": [
             "capture_user_name"
           ],
-          "latencyMs": 5971
+          "latencyMs": 6387
         },
         {
           "role": "test",
           "userMessage": "WTC",
-          "assistantResponse": "Great! So you're at WTC. What can I get started for you?",
+          "assistantResponse": "Great, you're all set at WTC. So what can I get you — a Latte or a Cortado?",
           "toolsUsed": [
-            "capture_user_name",
-            "get_store_info"
+            "get_store_info",
+            "capture_user_name"
           ],
-          "latencyMs": 5132
+          "latencyMs": 6402
         },
         {
           "role": "test",
           "userMessage": "latte with whole milk",
-          "assistantResponse": "Perfect, a latte with whole milk. You want a pastry with that? We've got croissants or chocolate croissants.",
+          "assistantResponse": "Perfect, a latte with whole milk. Want to add a croissant or chocolate croissant?",
           "toolsUsed": [],
-          "latencyMs": 5922
+          "latencyMs": 4095
         },
         {
           "role": "test",
           "userMessage": "no pastry",
           "assistantResponse": "Got it, no pastry. How do you want to tip — 0% or 10%?",
           "toolsUsed": [],
-          "latencyMs": 4555
+          "latencyMs": 5475
         },
         {
           "role": "test",
           "userMessage": "I want to tip $2",
-          "assistantResponse": "I hear you, but right now we're only able to do 0% or 10% tip. Which one works for you?",
+          "assistantResponse": "I hear you, but right now we're only set up for 0% or 10% tip. Which one works for you?",
           "toolsUsed": [],
-          "latencyMs": 734
+          "latencyMs": 964
         }
       ],
-      "totalLatencyMs": 26067
+      "totalLatencyMs": 27424
+    },
+    {
+      "model": "claude-haiku-4-5",
+      "id": "TC-19",
+      "category": "bulk_order",
+      "description": "Bulk order guardrail: written-out number word 'four cortados for my team' must be intercepted before any API call — no tools called",
+      "pass": true,
+      "reason": "All checks passed",
+      "toolsUsed": [],
+      "turns": [
+        {
+          "role": "bootstrap",
+          "userMessage": "Hello",
+          "assistantResponse": "Hey! I'm Brew. What's your name?",
+          "toolsUsed": [],
+          "latencyMs": 4875
+        },
+        {
+          "role": "bootstrap",
+          "userMessage": "Eval",
+          "assistantResponse": "Nice to meet you, Eval! Which Brew location are you at — World Trade Center, Penn Station, or Grand Central?",
+          "toolsUsed": [
+            "capture_user_name"
+          ],
+          "latencyMs": 6747
+        },
+        {
+          "role": "test",
+          "userMessage": "four cortados for my team",
+          "assistantResponse": "Got it! Before I ring those up, which location are you at — World Trade Center, Penn Station, or Grand Central?",
+          "toolsUsed": [],
+          "latencyMs": 794
+        }
+      ],
+      "totalLatencyMs": 12416
     }
   ],
   "claude-sonnet-4-5": [
@@ -926,61 +964,61 @@
           "userMessage": "Hello",
           "assistantResponse": "Hey! I'm Brew. What's your name?",
           "toolsUsed": [],
-          "latencyMs": 1179
+          "latencyMs": 4237
         },
         {
           "role": "bootstrap",
           "userMessage": "Eval",
-          "assistantResponse": "Nice to meet you, Eval! Which location are you at — World Trade Center, Penn Station, or Grand Central?",
+          "assistantResponse": "Hey Eval! Which location are you at — World Trade Center, Penn Station, or Grand Central?",
           "toolsUsed": [
             "capture_user_name"
           ],
-          "latencyMs": 3850
+          "latencyMs": 6175
         },
         {
           "role": "test",
           "userMessage": "WTC",
-          "assistantResponse": "Perfect! What can I get you, Eval — a latte or a cortado?",
+          "assistantResponse": "Great! What can I get started for you — a latte or a cortado?",
           "toolsUsed": [
             "capture_user_name",
             "get_store_info"
           ],
-          "latencyMs": 4322
+          "latencyMs": 3421
         },
         {
           "role": "test",
           "userMessage": "latte with whole milk please",
-          "assistantResponse": "Got it, latte with whole milk. Want a croissant or chocolate croissant with that?",
+          "assistantResponse": "Perfect! Would you like a croissant or chocolate croissant with that?",
           "toolsUsed": [],
-          "latencyMs": 10046
+          "latencyMs": 1040
         },
         {
           "role": "test",
           "userMessage": "no pastry thanks",
-          "assistantResponse": "Sounds good. What would you like to tip — 0% or 10%?",
+          "assistantResponse": "Sounds good! Just need to know — would you like to add a 0% or 10% tip?",
           "toolsUsed": [],
-          "latencyMs": 1410
+          "latencyMs": 2372
         },
         {
           "role": "test",
           "userMessage": "no tip",
-          "assistantResponse": "Alright, your total is $5.99. I'll charge the card on file — good to go ahead?",
+          "assistantResponse": "Got it. Your total comes to $5.99. I'll charge the card on file — sound good?",
           "toolsUsed": [
             "calculate_total"
           ],
-          "latencyMs": 3933
+          "latencyMs": 3983
         },
         {
           "role": "test",
           "userMessage": "yes please charge my card",
-          "assistantResponse": "Perfect, Eval! Your latte's all set. Look for your name at the pickup area at World Trade Center — should be ready in about 5 minutes. Thanks!",
+          "assistantResponse": "All set, Eval! Look for your name at the pickup area at World Trade Center. Should be ready in about 5 minutes!",
           "toolsUsed": [
             "submit_order"
           ],
-          "latencyMs": 5594
+          "latencyMs": 4515
         }
       ],
-      "totalLatencyMs": 30334
+      "totalLatencyMs": 25743
     },
     {
       "model": "claude-sonnet-4-5",
@@ -1001,61 +1039,61 @@
           "userMessage": "Hello",
           "assistantResponse": "Hey! I'm Brew. What's your name?",
           "toolsUsed": [],
-          "latencyMs": 1177
+          "latencyMs": 1349
         },
         {
           "role": "bootstrap",
           "userMessage": "Eval",
-          "assistantResponse": "Great to meet you, Eval! Which location are you at — World Trade Center, Penn Station, or Grand Central?",
+          "assistantResponse": "Nice to meet you, Eval! Which location are you at — World Trade Center, Penn Station, or Grand Central?",
           "toolsUsed": [
             "capture_user_name"
           ],
-          "latencyMs": 3593
+          "latencyMs": 2339
         },
         {
           "role": "test",
           "userMessage": "Grand Central",
-          "assistantResponse": "Perfect, Eval! What can I get you — a latte or a cortado?",
+          "assistantResponse": "Perfect! What can I get started for you today, Eval?",
           "toolsUsed": [
             "capture_user_name",
             "get_store_info"
           ],
-          "latencyMs": 3469
+          "latencyMs": 4929
         },
         {
           "role": "test",
           "userMessage": "cortado with almond milk",
-          "assistantResponse": "Sounds good! Want a plain or chocolate croissant with that?",
+          "assistantResponse": "Great choice! Would you like a croissant or chocolate croissant with that?",
           "toolsUsed": [],
-          "latencyMs": 1440
+          "latencyMs": 1514
         },
         {
           "role": "test",
           "userMessage": "yes I'll take a chocolate croissant",
-          "assistantResponse": "Nice! Last thing — would you like to add a 0% or 10% tip?",
+          "assistantResponse": "Awesome! And would you like to add a 0% or 10% tip?",
           "toolsUsed": [],
-          "latencyMs": 1440
+          "latencyMs": 1496
         },
         {
           "role": "test",
           "userMessage": "10 percent tip",
-          "assistantResponse": "Your total comes to $10.48. I'll charge the card on file — sound good?",
+          "assistantResponse": "Perfect! That'll be $10.48 total on your card on file. Sound good to go ahead?",
           "toolsUsed": [
             "calculate_total"
           ],
-          "latencyMs": 3091
+          "latencyMs": 3817
         },
         {
           "role": "test",
           "userMessage": "yes charge it",
-          "assistantResponse": "All set, Eval! Look for your name at the pickup area at Grand Central — should be ready in about 5 minutes.",
+          "assistantResponse": "All set, Eval! Look for your name at the pickup area at Grand Central. Should be ready in about 5 minutes. Enjoy!",
           "toolsUsed": [
             "submit_order"
           ],
-          "latencyMs": 4706
+          "latencyMs": 3658
         }
       ],
-      "totalLatencyMs": 18916
+      "totalLatencyMs": 19102
     },
     {
       "model": "claude-sonnet-4-5",
@@ -1076,7 +1114,7 @@
           "userMessage": "Hello",
           "assistantResponse": "Hey! I'm Brew. What's your name?",
           "toolsUsed": [],
-          "latencyMs": 1077
+          "latencyMs": 1319
         },
         {
           "role": "bootstrap",
@@ -1085,52 +1123,52 @@
           "toolsUsed": [
             "capture_user_name"
           ],
-          "latencyMs": 3037
+          "latencyMs": 4817
         },
         {
           "role": "test",
           "userMessage": "Penn Station",
-          "assistantResponse": "Got it, Eval! What can I get for you?",
+          "assistantResponse": "Great! What can I get you, Eval?",
           "toolsUsed": [
             "capture_user_name",
             "get_store_info"
           ],
-          "latencyMs": 3834
+          "latencyMs": 4345
         },
         {
           "role": "test",
           "userMessage": "latte with 2% milk",
           "assistantResponse": "Perfect! Want a croissant with that?",
           "toolsUsed": [],
-          "latencyMs": 1331
+          "latencyMs": 1068
         },
         {
           "role": "test",
           "userMessage": "yes a croissant please",
-          "assistantResponse": "Sounds good! What tip would you like to add — 0% or 10%?",
+          "assistantResponse": "Awesome! And what tip would you like to add — 0% or 10%?",
           "toolsUsed": [],
-          "latencyMs": 1637
+          "latencyMs": 1406
         },
         {
           "role": "test",
           "userMessage": "no tip",
-          "assistantResponse": "Your total comes to $9.80. I'll charge the card on file — good to go ahead?",
+          "assistantResponse": "Got it. Your total is $9.80 — I'll charge the card on file. Ready to go ahead?",
           "toolsUsed": [
             "calculate_total"
           ],
-          "latencyMs": 3924
+          "latencyMs": 3883
         },
         {
           "role": "test",
           "userMessage": "yes go ahead",
-          "assistantResponse": "All set, Eval! Look for your name at the pickup area at Penn Station — should be ready in about 5 minutes.",
+          "assistantResponse": "All set, Eval! Look for your name at the pickup area at Penn Station — should be ready in about 5 minutes!",
           "toolsUsed": [
             "submit_order"
           ],
-          "latencyMs": 4357
+          "latencyMs": 9853
         }
       ],
-      "totalLatencyMs": 19197
+      "totalLatencyMs": 26691
     },
     {
       "model": "claude-sonnet-4-5",
@@ -1149,7 +1187,7 @@
           "userMessage": "Hello",
           "assistantResponse": "Hey! I'm Brew. What's your name?",
           "toolsUsed": [],
-          "latencyMs": 1229
+          "latencyMs": 1784
         },
         {
           "role": "bootstrap",
@@ -1158,27 +1196,27 @@
           "toolsUsed": [
             "capture_user_name"
           ],
-          "latencyMs": 3552
+          "latencyMs": 2195
         },
         {
           "role": "test",
           "userMessage": "Penn Station",
-          "assistantResponse": "Perfect, Eval! What can I get started for you today?",
+          "assistantResponse": "Perfect! What can I get started for you, Eval?",
           "toolsUsed": [
             "capture_user_name",
             "get_store_info"
           ],
-          "latencyMs": 3674
+          "latencyMs": 3092
         },
         {
           "role": "test",
           "userMessage": "I'd like a cortado please",
           "assistantResponse": "I'm sorry, we don't have cortado at Penn Station. How about a latte instead?",
           "toolsUsed": [],
-          "latencyMs": 2491
+          "latencyMs": 1108
         }
       ],
-      "totalLatencyMs": 10946
+      "totalLatencyMs": 8179
     },
     {
       "model": "claude-sonnet-4-5",
@@ -1197,7 +1235,7 @@
           "userMessage": "Hello",
           "assistantResponse": "Hey! I'm Brew. What's your name?",
           "toolsUsed": [],
-          "latencyMs": 1175
+          "latencyMs": 2466
         },
         {
           "role": "bootstrap",
@@ -1206,27 +1244,27 @@
           "toolsUsed": [
             "capture_user_name"
           ],
-          "latencyMs": 4428
+          "latencyMs": 4648
         },
         {
           "role": "test",
           "userMessage": "Penn Station",
-          "assistantResponse": "Perfect, Eval! What can I get started for you?",
+          "assistantResponse": "Great! What can I get you, Eval?",
           "toolsUsed": [
             "capture_user_name",
             "get_store_info"
           ],
-          "latencyMs": 5000
+          "latencyMs": 3407
         },
         {
           "role": "test",
           "userMessage": "latte with almond milk please",
-          "assistantResponse": "I wish I had almond milk here at Penn Station, but I've only got whole milk and 2%. Which would you prefer?",
+          "assistantResponse": "I'm sorry, Eval — we don't have almond milk at Penn Station. I've got whole or 2%. Which would you like?",
           "toolsUsed": [],
-          "latencyMs": 2562
+          "latencyMs": 3803
         }
       ],
-      "totalLatencyMs": 13165
+      "totalLatencyMs": 14324
     },
     {
       "model": "claude-sonnet-4-5",
@@ -1245,7 +1283,7 @@
           "userMessage": "Hello",
           "assistantResponse": "Hey! I'm Brew. What's your name?",
           "toolsUsed": [],
-          "latencyMs": 1466
+          "latencyMs": 1309
         },
         {
           "role": "bootstrap",
@@ -1254,34 +1292,34 @@
           "toolsUsed": [
             "capture_user_name"
           ],
-          "latencyMs": 3324
+          "latencyMs": 2422
         },
         {
           "role": "test",
           "userMessage": "Penn Station",
-          "assistantResponse": "Perfect, Eval! What can I get started for you today?",
+          "assistantResponse": "Great! What can I get started for you, Eval?",
           "toolsUsed": [
             "capture_user_name",
             "get_store_info"
           ],
-          "latencyMs": 4425
+          "latencyMs": 4645
         },
         {
           "role": "test",
           "userMessage": "latte with whole milk",
-          "assistantResponse": "Great choice! Want to add a croissant to that?",
+          "assistantResponse": "Perfect! Want a plain or chocolate croissant with that?",
           "toolsUsed": [],
-          "latencyMs": 1452
+          "latencyMs": 3331
         },
         {
           "role": "test",
           "userMessage": "I'll have a chocolate croissant",
-          "assistantResponse": "I'm sorry, we don't have chocolate croissants at Penn Station. We do have a regular croissant if you'd like that instead?",
+          "assistantResponse": "I'm sorry, we don't have chocolate croissants at Penn Station. We do have a plain croissant though — want that instead?",
           "toolsUsed": [],
-          "latencyMs": 2057
+          "latencyMs": 1698
         }
       ],
-      "totalLatencyMs": 12724
+      "totalLatencyMs": 13405
     },
     {
       "model": "claude-sonnet-4-5",
@@ -1297,7 +1335,7 @@
           "userMessage": "Hello",
           "assistantResponse": "Hey! I'm Brew. What's your name?",
           "toolsUsed": [],
-          "latencyMs": 1512
+          "latencyMs": 1378
         },
         {
           "role": "bootstrap",
@@ -1306,17 +1344,17 @@
           "toolsUsed": [
             "capture_user_name"
           ],
-          "latencyMs": 2586
+          "latencyMs": 2437
         },
         {
           "role": "test",
           "userMessage": "I'm at the train station, can I order?",
-          "assistantResponse": "I just need to know which train station — Penn Station or Grand Central?",
+          "assistantResponse": "I've got you, but I need to know which specific station — are you at Penn Station or Grand Central?",
           "toolsUsed": [],
-          "latencyMs": 2314
+          "latencyMs": 1364
         }
       ],
-      "totalLatencyMs": 6412
+      "totalLatencyMs": 5179
     },
     {
       "model": "claude-sonnet-4-5",
@@ -1332,26 +1370,26 @@
           "userMessage": "Hello",
           "assistantResponse": "Hey! I'm Brew. What's your name?",
           "toolsUsed": [],
-          "latencyMs": 1899
+          "latencyMs": 1251
         },
         {
           "role": "bootstrap",
           "userMessage": "Eval",
-          "assistantResponse": "Nice to meet you, Eval! Which location are you at — World Trade Center, Penn Station, or Grand Central?",
+          "assistantResponse": "Hey Eval! Which location are you at — World Trade Center, Penn Station, or Grand Central?",
           "toolsUsed": [
             "capture_user_name"
           ],
-          "latencyMs": 2733
+          "latencyMs": 4461
         },
         {
           "role": "test",
           "userMessage": "I'm downtown near the transit hub",
-          "assistantResponse": "Got it! Just to confirm — are you at the World Trade Center location?",
+          "assistantResponse": "Got it — just to confirm, are you at the World Trade Center location?",
           "toolsUsed": [],
-          "latencyMs": 1618
+          "latencyMs": 1319
         }
       ],
-      "totalLatencyMs": 6250
+      "totalLatencyMs": 7031
     },
     {
       "model": "claude-sonnet-4-5",
@@ -1372,7 +1410,7 @@
           "userMessage": "Hello",
           "assistantResponse": "Hey! I'm Brew. What's your name?",
           "toolsUsed": [],
-          "latencyMs": 1964
+          "latencyMs": 1337
         },
         {
           "role": "bootstrap",
@@ -1381,52 +1419,52 @@
           "toolsUsed": [
             "capture_user_name"
           ],
-          "latencyMs": 2577
+          "latencyMs": 3034
         },
         {
           "role": "test",
           "userMessage": "WTC",
-          "assistantResponse": "Perfect! What can I get started for you, Eval — a latte or a cortado?",
+          "assistantResponse": "Great! What can I get started for you — a latte or a cortado?",
           "toolsUsed": [
             "capture_user_name",
             "get_store_info"
           ],
-          "latencyMs": 4845
+          "latencyMs": 3796
         },
         {
           "role": "test",
           "userMessage": "latte with almond milk",
-          "assistantResponse": "Great choice! Want to add a croissant or chocolate croissant?",
+          "assistantResponse": "Perfect! Want a croissant or chocolate croissant with that?",
           "toolsUsed": [],
-          "latencyMs": 2044
+          "latencyMs": 1699
         },
         {
           "role": "test",
           "userMessage": "yes a croissant please",
-          "assistantResponse": "Awesome. What tip would you like to add — 0% or 10%?",
+          "assistantResponse": "Sounds good! And would you like to add a 10% tip, or no tip today?",
           "toolsUsed": [],
-          "latencyMs": 1538
+          "latencyMs": 1530
         },
         {
           "role": "test",
           "userMessage": "10% tip",
-          "assistantResponse": "Your total comes to $11.68. I'll charge the card on file — sound good?",
+          "assistantResponse": "Alright, Eval — that's a latte with almond milk and a croissant. Your total comes to $11.68. I'll charge the card on file. Sound good?",
           "toolsUsed": [
             "calculate_total"
           ],
-          "latencyMs": 3652
+          "latencyMs": 7195
         },
         {
           "role": "test",
           "userMessage": "yes charge my card",
-          "assistantResponse": "All set, Eval! Look for your name at the pickup area at World Trade Center — should be ready in about 5 minutes.",
+          "assistantResponse": "All set! Look for your name at the pickup area at World Trade Center — should be ready in about 5 minutes. Thanks, Eval!",
           "toolsUsed": [
             "submit_order"
           ],
-          "latencyMs": 4594
+          "latencyMs": 6111
         }
       ],
-      "totalLatencyMs": 21214
+      "totalLatencyMs": 24702
     },
     {
       "model": "claude-sonnet-4-5",
@@ -1442,7 +1480,7 @@
           "userMessage": "Hello",
           "assistantResponse": "Hey! I'm Brew. What's your name?",
           "toolsUsed": [],
-          "latencyMs": 1219
+          "latencyMs": 1633
         },
         {
           "role": "bootstrap",
@@ -1451,17 +1489,17 @@
           "toolsUsed": [
             "capture_user_name"
           ],
-          "latencyMs": 3672
+          "latencyMs": 5620
         },
         {
           "role": "test",
           "userMessage": "Can you help me figure out the subway map?",
-          "assistantResponse": "I appreciate the question, but I'm here to help with coffee orders! If you're looking for directions, the folks at the station info desk are your best bet. \n\nSo, which of our locations are you at today — World Trade Center, Penn Station, or Grand Central?",
+          "assistantResponse": "I wish I could help with that, but I'm really just here for coffee orders! If you're looking to grab a latte or cortado though, I'm your person. Which location are you at?",
           "toolsUsed": [],
-          "latencyMs": 2542
+          "latencyMs": 1774
         }
       ],
-      "totalLatencyMs": 7433
+      "totalLatencyMs": 9027
     },
     {
       "model": "claude-sonnet-4-5",
@@ -1481,7 +1519,7 @@
           "userMessage": "Hello",
           "assistantResponse": "Hey! I'm Brew. What's your name?",
           "toolsUsed": [],
-          "latencyMs": 1755
+          "latencyMs": 1333
         },
         {
           "role": "bootstrap",
@@ -1490,17 +1528,17 @@
           "toolsUsed": [
             "capture_user_name"
           ],
-          "latencyMs": 3317
+          "latencyMs": 4469
         },
         {
           "role": "test",
           "userMessage": "WTC",
-          "assistantResponse": "Perfect, Eval! What can I get you — a latte or a cortado?",
+          "assistantResponse": "Perfect! What can I get you — a latte or a cortado?",
           "toolsUsed": [
             "capture_user_name",
             "get_store_info"
           ],
-          "latencyMs": 3531
+          "latencyMs": 2937
         },
         {
           "role": "test",
@@ -1509,10 +1547,10 @@
           "toolsUsed": [
             "get_store_info"
           ],
-          "latencyMs": 3840
+          "latencyMs": 4705
         }
       ],
-      "totalLatencyMs": 12443
+      "totalLatencyMs": 13444
     },
     {
       "model": "claude-sonnet-4-5",
@@ -1532,7 +1570,7 @@
           "userMessage": "Hello",
           "assistantResponse": "Hey! I'm Brew. What's your name?",
           "toolsUsed": [],
-          "latencyMs": 1528
+          "latencyMs": 2115
         },
         {
           "role": "bootstrap",
@@ -1541,17 +1579,17 @@
           "toolsUsed": [
             "capture_user_name"
           ],
-          "latencyMs": 3265
+          "latencyMs": 3456
         },
         {
           "role": "test",
           "userMessage": "Penn Station",
-          "assistantResponse": "Great, Eval! What can I get started for you?",
+          "assistantResponse": "Perfect! What can I get started for you, Eval?",
           "toolsUsed": [
             "capture_user_name",
             "get_store_info"
           ],
-          "latencyMs": 4472
+          "latencyMs": 4594
         },
         {
           "role": "test",
@@ -1560,10 +1598,10 @@
           "toolsUsed": [
             "get_store_info"
           ],
-          "latencyMs": 4998
+          "latencyMs": 4229
         }
       ],
-      "totalLatencyMs": 14263
+      "totalLatencyMs": 14394
     },
     {
       "model": "claude-sonnet-4-5",
@@ -1579,26 +1617,26 @@
           "userMessage": "Hello",
           "assistantResponse": "Hey! I'm Brew. What's your name?",
           "toolsUsed": [],
-          "latencyMs": 1684
+          "latencyMs": 1572
         },
         {
           "role": "bootstrap",
           "userMessage": "Eval",
-          "assistantResponse": "Nice to meet you, Eval! Which location are you at — World Trade Center, Penn Station, or Grand Central?",
+          "assistantResponse": "Hey Eval! Nice to meet you. Which location are you at — World Trade Center, Penn Station, or Grand Central?",
           "toolsUsed": [
             "capture_user_name"
           ],
-          "latencyMs": 3076
+          "latencyMs": 3169
         },
         {
           "role": "test",
           "userMessage": "what's on the menu?",
-          "assistantResponse": "I'd love to help with that! First, which location are you at — World Trade Center, Penn Station, or Grand Central?",
+          "assistantResponse": "I'd love to tell you what we have, but I need to know which location you're at first since our inventory varies. Are you at World Trade Center, Penn Station, or Grand Central?",
           "toolsUsed": [],
-          "latencyMs": 2261
+          "latencyMs": 2690
         }
       ],
-      "totalLatencyMs": 7021
+      "totalLatencyMs": 7431
     },
     {
       "model": "claude-sonnet-4-5",
@@ -1614,7 +1652,7 @@
           "userMessage": "Hello",
           "assistantResponse": "Hey! I'm Brew. What's your name?",
           "toolsUsed": [],
-          "latencyMs": 1943
+          "latencyMs": 4425
         },
         {
           "role": "bootstrap",
@@ -1623,17 +1661,17 @@
           "toolsUsed": [
             "capture_user_name"
           ],
-          "latencyMs": 2752
+          "latencyMs": 2695
         },
         {
           "role": "test",
           "userMessage": "show me the menu for all three locations",
           "assistantResponse": "I can help with one location at a time. Which one are you at right now?",
           "toolsUsed": [],
-          "latencyMs": 2092
+          "latencyMs": 1727
         }
       ],
-      "totalLatencyMs": 6787
+      "totalLatencyMs": 8847
     },
     {
       "model": "claude-sonnet-4-5",
@@ -1649,7 +1687,7 @@
           "userMessage": "Hello",
           "assistantResponse": "Hey! I'm Brew. What's your name?",
           "toolsUsed": [],
-          "latencyMs": 2296
+          "latencyMs": 1295
         },
         {
           "role": "bootstrap",
@@ -1658,17 +1696,17 @@
           "toolsUsed": [
             "capture_user_name"
           ],
-          "latencyMs": 4083
+          "latencyMs": 3293
         },
         {
           "role": "test",
           "userMessage": "I'm at the station, what's on the price list?",
-          "assistantResponse": "I need to know which specific station you're at — Penn Station or Grand Central?",
+          "assistantResponse": "Which station are you at — Penn Station or Grand Central?",
           "toolsUsed": [],
-          "latencyMs": 1507
+          "latencyMs": 1105
         }
       ],
-      "totalLatencyMs": 7886
+      "totalLatencyMs": 5693
     },
     {
       "model": "claude-sonnet-4-5",
@@ -1687,7 +1725,7 @@
           "userMessage": "Hello",
           "assistantResponse": "Hey! I'm Brew. What's your name?",
           "toolsUsed": [],
-          "latencyMs": 1950
+          "latencyMs": 1157
         },
         {
           "role": "bootstrap",
@@ -1696,27 +1734,27 @@
           "toolsUsed": [
             "capture_user_name"
           ],
-          "latencyMs": 3155
+          "latencyMs": 5989
         },
         {
           "role": "test",
           "userMessage": "Grand Central",
-          "assistantResponse": "Perfect, Eval! What can I get you — a latte or a cortado?",
+          "assistantResponse": "Great! What can I get started for you, Eval — a latte or a cortado?",
           "toolsUsed": [
             "capture_user_name",
             "get_store_info"
           ],
-          "latencyMs": 5163
+          "latencyMs": 3602
         },
         {
           "role": "test",
           "userMessage": "I'd like a cortado please",
-          "assistantResponse": "Great choice! What kind of milk would you like — whole, 2%, or almond?",
+          "assistantResponse": "Perfect! What kind of milk would you like in that — whole, 2%, or almond?",
           "toolsUsed": [],
-          "latencyMs": 1405
+          "latencyMs": 1568
         }
       ],
-      "totalLatencyMs": 11673
+      "totalLatencyMs": 12316
     },
     {
       "model": "claude-sonnet-4-5",
@@ -1732,26 +1770,26 @@
           "userMessage": "Hello",
           "assistantResponse": "Hey! I'm Brew. What's your name?",
           "toolsUsed": [],
-          "latencyMs": 1872
+          "latencyMs": 1536
         },
         {
           "role": "bootstrap",
           "userMessage": "Eval",
-          "assistantResponse": "Great to meet you, Eval! Which location are you at — World Trade Center, Penn Station, or Grand Central?",
+          "assistantResponse": "Nice to meet you, Eval! Which location are you at — World Trade Center, Penn Station, or Grand Central?",
           "toolsUsed": [
             "capture_user_name"
           ],
-          "latencyMs": 2804
+          "latencyMs": 2811
         },
         {
           "role": "test",
           "userMessage": "4 lattes for my office",
-          "assistantResponse": "Sounds good! Which location are you at — World Trade Center, Penn Station, or Grand Central?",
+          "assistantResponse": "Great! Which location are you at — World Trade Center, Penn Station, or Grand Central?",
           "toolsUsed": [],
-          "latencyMs": 1665
+          "latencyMs": 1054
         }
       ],
-      "totalLatencyMs": 6341
+      "totalLatencyMs": 5401
     },
     {
       "model": "claude-sonnet-4-5",
@@ -1770,7 +1808,7 @@
           "userMessage": "Hello",
           "assistantResponse": "Hey! I'm Brew. What's your name?",
           "toolsUsed": [],
-          "latencyMs": 1464
+          "latencyMs": 2788
         },
         {
           "role": "bootstrap",
@@ -1779,41 +1817,76 @@
           "toolsUsed": [
             "capture_user_name"
           ],
-          "latencyMs": 2697
+          "latencyMs": 2489
         },
         {
           "role": "test",
           "userMessage": "WTC",
-          "assistantResponse": "Perfect, Eval! What can I get you — a latte or cortado?",
+          "assistantResponse": "Perfect! What can I get for you today, Eval — a latte or cortado?",
           "toolsUsed": [
             "capture_user_name",
             "get_store_info"
           ],
-          "latencyMs": 3790
+          "latencyMs": 6295
         },
         {
           "role": "test",
           "userMessage": "latte with whole milk",
-          "assistantResponse": "Great choice! Want a croissant or chocolate croissant with that?",
+          "assistantResponse": "Great choice! Would you like a croissant or chocolate croissant with that?",
           "toolsUsed": [],
-          "latencyMs": 1366
+          "latencyMs": 1164
         },
         {
           "role": "test",
           "userMessage": "no pastry",
-          "assistantResponse": "Sounds good! And would you like to add a 0% or 10% tip?",
+          "assistantResponse": "Sounds good. And what tip would you like to add — 0% or 10%?",
           "toolsUsed": [],
-          "latencyMs": 2668
+          "latencyMs": 1476
         },
         {
           "role": "test",
           "userMessage": "I want to tip $2",
-          "assistantResponse": "I appreciate that! Right now we can only do 0% or 10% tip. Which one works for you?",
+          "assistantResponse": "I appreciate that! Right now we can only do 0% or 10% tip. Which would you prefer?",
           "toolsUsed": [],
-          "latencyMs": 1667
+          "latencyMs": 1253
         }
       ],
-      "totalLatencyMs": 13652
+      "totalLatencyMs": 15465
+    },
+    {
+      "model": "claude-sonnet-4-5",
+      "id": "TC-19",
+      "category": "bulk_order",
+      "description": "Bulk order guardrail: written-out number word 'four cortados for my team' must be intercepted before any API call — no tools called",
+      "pass": true,
+      "reason": "All checks passed",
+      "toolsUsed": [],
+      "turns": [
+        {
+          "role": "bootstrap",
+          "userMessage": "Hello",
+          "assistantResponse": "Hey! I'm Brew. What's your name?",
+          "toolsUsed": [],
+          "latencyMs": 1530
+        },
+        {
+          "role": "bootstrap",
+          "userMessage": "Eval",
+          "assistantResponse": "Nice to meet you, Eval! Which location are you at — World Trade Center, Penn Station, or Grand Central?",
+          "toolsUsed": [
+            "capture_user_name"
+          ],
+          "latencyMs": 3853
+        },
+        {
+          "role": "test",
+          "userMessage": "four cortados for my team",
+          "assistantResponse": "Great! Which location are you at — World Trade Center, Penn Station, or Grand Central?",
+          "toolsUsed": [],
+          "latencyMs": 1046
+        }
+      ],
+      "totalLatencyMs": 6429
     }
   ]
 }
