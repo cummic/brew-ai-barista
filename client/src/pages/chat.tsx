@@ -264,7 +264,6 @@ export default function ChatPage() {
   const [isTyping, setIsTyping] = useState(false);
   const [streamingContent, setStreamingContent] = useState<string | null>(null);
   const [isSending, setIsSending] = useState(false);
-  const [showPrivacy, setShowPrivacy] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -413,12 +412,11 @@ export default function ChatPage() {
       </header>
 
       <div className="flex-1 overflow-y-auto py-3" data-testid="messages-container">
-        {showPrivacy && (
-          <div className="mx-4 mb-3 flex items-start justify-between gap-2 rounded-lg border border-border bg-muted/50 px-3 py-2 text-xs text-muted-foreground">
-            <span>This is a demo. Conversations may be reviewed to improve the experience. No real orders or charges are processed.</span>
-            <button onClick={() => setShowPrivacy(false)} className="flex-shrink-0 hover:text-foreground" aria-label="Dismiss">✕</button>
-          </div>
-        )}
+        <div className="flex justify-center px-4 pb-2 pt-1">
+          <span className="rounded-full bg-muted/60 px-3 py-1 text-xs text-muted-foreground">
+            Demo only · No real orders or charges processed
+          </span>
+        </div>
 
         {createSession.isPending && messages.length === 0 && (
           <div className="flex flex-col items-center justify-center h-full gap-3 text-muted-foreground">
