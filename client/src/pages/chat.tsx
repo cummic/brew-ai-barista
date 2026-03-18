@@ -110,6 +110,16 @@ const STAGE_PROGRESS: Record<string, number> = {
 };
 
 
+function SystemMessage({ text }: { text: string }) {
+  return (
+    <div className="flex justify-center px-4 pb-2 pt-1">
+      <span className="rounded-full bg-muted/60 px-3 py-1 text-xs text-muted-foreground">
+        {text}
+      </span>
+    </div>
+  );
+}
+
 function TypingIndicator() {
   return (
     <div className="flex items-end gap-2 px-4 py-1">
@@ -412,11 +422,7 @@ export default function ChatPage() {
       </header>
 
       <div className="flex-1 overflow-y-auto py-3" data-testid="messages-container">
-        <div className="flex justify-center px-4 pb-2 pt-1">
-          <span className="rounded-full bg-muted/60 px-3 py-1 text-xs text-muted-foreground">
-            Demo only · No real orders or charges processed
-          </span>
-        </div>
+        <SystemMessage text="Demo only · No real orders or charges processed" />
 
         {createSession.isPending && messages.length === 0 && (
           <div className="flex flex-col items-center justify-center h-full gap-3 text-muted-foreground">
