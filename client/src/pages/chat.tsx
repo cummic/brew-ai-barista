@@ -324,7 +324,9 @@ export default function ChatPage() {
   }, []);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (messages.length > 1 || isTyping || streamingContent !== null) {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
   }, [messages, isTyping, streamingContent]);
 
   const handleSend = useCallback(async (text?: string) => {
@@ -422,7 +424,7 @@ export default function ChatPage() {
       </header>
 
       <div className="flex-1 overflow-y-auto py-3" data-testid="messages-container">
-        <SystemMessage text="Demo only · No real orders or charges processed" />
+        <SystemMessage text="Demo only · Conversations are saved · No real charges or orders" />
 
         {createSession.isPending && messages.length === 0 && (
           <div className="flex flex-col items-center justify-center h-full gap-3 text-muted-foreground">
