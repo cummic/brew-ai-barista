@@ -1,5 +1,6 @@
 node_modules
 dist
+eval_quality_responses.csv
 .DS_Store
 server/public
 vite.config.ts.*
