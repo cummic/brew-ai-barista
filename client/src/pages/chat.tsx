@@ -276,6 +276,13 @@ export default function ChatPage() {
       setMessages([]);
       sendInitialGreeting(data.sessionId);
     },
+    onError: () => {
+      setMessages([{
+        role: "assistant",
+        content: "Something went wrong starting your session. Please refresh the page and try again.",
+        timestamp: new Date().toISOString(),
+      }]);
+    },
   });
 
   const sendInitialGreeting = useCallback(async (sid: string) => {
@@ -400,7 +407,7 @@ export default function ChatPage() {
             className="text-xs gap-1.5"
           >
             <RotateCcw className="h-3.5 w-3.5" />
-            Reset Session
+            New Order
           </Button>
         </div>
       </header>
@@ -408,7 +415,7 @@ export default function ChatPage() {
       <div className="flex-1 overflow-y-auto py-3" data-testid="messages-container">
         {showPrivacy && (
           <div className="mx-4 mb-3 flex items-start justify-between gap-2 rounded-lg border border-border bg-muted/50 px-3 py-2 text-xs text-muted-foreground">
-            <span>This is a demo. Conversations are logged for development purposes. No real orders or charges are processed.</span>
+            <span>This is a demo. Conversations may be reviewed to improve the experience. No real orders or charges are processed.</span>
             <button onClick={() => setShowPrivacy(false)} className="flex-shrink-0 hover:text-foreground" aria-label="Dismiss">✕</button>
           </div>
         )}
@@ -477,12 +484,6 @@ export default function ChatPage() {
               <Send className="h-4 w-4" />
             </Button>
           </div>
-          <p className="mt-1.5 text-center text-xs text-muted-foreground">
-            Press Enter to send · Shift+Enter for new line
-          </p>
-          <p className="mt-0.5 text-center text-xs text-muted-foreground/60">
-            Demo only — no real orders or charges are processed.
-          </p>
         </div>
       )}
 
