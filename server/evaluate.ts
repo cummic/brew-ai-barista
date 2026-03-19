@@ -1,8 +1,17 @@
 import { runBaristaChat, initMenu } from "./barista.js";
 import type { OrderState } from "../shared/schema.js";
+import { createClient } from "@supabase/supabase-js";
 import { readFileSync } from "fs";
 import { join } from "path";
 import { randomUUID } from "crypto";
+
+interface TestCaseSetup {
+  location_inventory?: {
+    location_id: string;
+    product_id: string;
+    is_available: boolean;
+  };
+}
 
 interface TestCase {
   id: string;
@@ -12,6 +21,88 @@ interface TestCase {
   expectedTools: string[];
   expectNoSubmitOrder?: boolean;
   expectNoStoreInfo?: boolean;
+  setup?: TestCaseSetup;
+}
+
+function getEvalSupabase() {
+  const url = process.env.SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) throw new Error("[eval] Supabase credentials not set");
+  return createClient(url, key);
+}
+
+interface InventorySnapshot {
+  location_id: string;
+  product_id: string;
+  original_is_available: boolean | null;
+}
+
+let _snapshot: InventorySnapshot | null = null;
+
+async function applySetup(setup: TestCaseSetup | undefined): Promise<void> {
+  if (!setup?.location_inventory) return;
+  const { location_id, product_id, is_available } = setup.location_inventory;
+  const sb = getEvalSupabase();
+
+  const { data, error } = await sb
+    .from("location_inventory")
+    .select("is_available")
+    .eq("location_id", location_id)
+    .eq("product_id", product_id)
+    .single();
+
+  if (error) {
+    throw new Error(
+      `[eval] applySetup: failed to read ${location_id}/${product_id}: ${error.message}`,
+    );
+  }
+
+  _snapshot = {
+    location_id,
+    product_id,
+    original_is_available: (data as { is_available: boolean }).is_available,
+  };
+
+  const { error: updateError } = await sb
+    .from("location_inventory")
+    .update({ is_available })
+    .eq("location_id", location_id)
+    .eq("product_id", product_id);
+
+  if (updateError) {
+    throw new Error(
+      `[eval] applySetup: failed to set is_available=${is_available} for ${location_id}/${product_id}: ${updateError.message}`,
+    );
+  }
+
+  console.log(
+    `[eval] setup: set ${location_id}/${product_id} is_available=${is_available} (was ${_snapshot.original_is_available})`,
+  );
+}
+
+async function revertSetup(): Promise<void> {
+  if (!_snapshot) return;
+  const { location_id, product_id, original_is_available } = _snapshot;
+  _snapshot = null;
+
+  if (original_is_available === null) return;
+
+  const sb = getEvalSupabase();
+  const { error } = await sb
+    .from("location_inventory")
+    .update({ is_available: original_is_available })
+    .eq("location_id", location_id)
+    .eq("product_id", product_id);
+
+  if (error) {
+    console.error(
+      `[eval] revertSetup: FAILED to restore ${location_id}/${product_id} is_available=${original_is_available}: ${error.message}`,
+    );
+  } else {
+    console.log(
+      `[eval] teardown: restored ${location_id}/${product_id} is_available=${original_is_available}`,
+    );
+  }
 }
 
 function createOrderState(): OrderState {
@@ -174,10 +265,16 @@ async function main() {
 
   const tasks = testCases.map((tc, i) => async () => {
     const start = Date.now();
-    const result = await runTestCase(tc);
+    await applySetup(tc.setup);
+    let result: Awaited<ReturnType<typeof runTestCase>>;
+    try {
+      result = await runTestCase(tc);
+    } finally {
+      await revertSetup();
+    }
     const elapsed = ((Date.now() - start) / 1000).toFixed(1);
     completed++;
-    return { tc, result, elapsed, index: i };
+    return { tc, result: result!, elapsed, index: i };
   });
 
   // Run all tasks with bounded concurrency, collecting ordered results.
