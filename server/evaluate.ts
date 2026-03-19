@@ -31,16 +31,10 @@ function getEvalSupabase() {
   return createClient(url, key);
 }
 
-interface InventorySnapshot {
-  location_id: string;
-  product_id: string;
-  original_is_available: boolean | null;
-}
-
-let _snapshot: InventorySnapshot | null = null;
-
-async function applySetup(setup: TestCaseSetup | undefined): Promise<void> {
-  if (!setup?.location_inventory) return;
+async function applySetup(
+  setup: TestCaseSetup | undefined,
+): Promise<(() => Promise<void>) | null> {
+  if (!setup?.location_inventory) return null;
   const { location_id, product_id, is_available } = setup.location_inventory;
   const sb = getEvalSupabase();
 
@@ -57,11 +51,7 @@ async function applySetup(setup: TestCaseSetup | undefined): Promise<void> {
     );
   }
 
-  _snapshot = {
-    location_id,
-    product_id,
-    original_is_available: (data as { is_available: boolean }).is_available,
-  };
+  const original_is_available = (data as { is_available: boolean }).is_available;
 
   const { error: updateError } = await sb
     .from("location_inventory")
@@ -76,33 +66,26 @@ async function applySetup(setup: TestCaseSetup | undefined): Promise<void> {
   }
 
   console.log(
-    `[eval] setup: set ${location_id}/${product_id} is_available=${is_available} (was ${_snapshot.original_is_available})`,
+    `[eval] setup: set ${location_id}/${product_id} is_available=${is_available} (was ${original_is_available})`,
   );
-}
 
-async function revertSetup(): Promise<void> {
-  if (!_snapshot) return;
-  const { location_id, product_id, original_is_available } = _snapshot;
-  _snapshot = null;
+  return async function revert() {
+    const { error: revertError } = await getEvalSupabase()
+      .from("location_inventory")
+      .update({ is_available: original_is_available })
+      .eq("location_id", location_id)
+      .eq("product_id", product_id);
 
-  if (original_is_available === null) return;
-
-  const sb = getEvalSupabase();
-  const { error } = await sb
-    .from("location_inventory")
-    .update({ is_available: original_is_available })
-    .eq("location_id", location_id)
-    .eq("product_id", product_id);
-
-  if (error) {
-    console.error(
-      `[eval] revertSetup: FAILED to restore ${location_id}/${product_id} is_available=${original_is_available}: ${error.message}`,
-    );
-  } else {
-    console.log(
-      `[eval] teardown: restored ${location_id}/${product_id} is_available=${original_is_available}`,
-    );
-  }
+    if (revertError) {
+      console.error(
+        `[eval] teardown: FAILED to restore ${location_id}/${product_id} is_available=${original_is_available}: ${revertError.message}`,
+      );
+    } else {
+      console.log(
+        `[eval] teardown: restored ${location_id}/${product_id} is_available=${original_is_available}`,
+      );
+    }
+  };
 }
 
 function createOrderState(): OrderState {
@@ -265,12 +248,12 @@ async function main() {
 
   const tasks = testCases.map((tc, i) => async () => {
     const start = Date.now();
-    await applySetup(tc.setup);
+    const revert = await applySetup(tc.setup);
     let result: Awaited<ReturnType<typeof runTestCase>>;
     try {
       result = await runTestCase(tc);
     } finally {
-      await revertSetup();
+      if (revert) await revert();
     }
     const elapsed = ((Date.now() - start) / 1000).toFixed(1);
     completed++;
