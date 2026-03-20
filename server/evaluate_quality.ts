@@ -338,7 +338,7 @@ async function modeJudge(testCases: TestCase[]) {
       console.log(` ${RED}DB ERROR: ${error.message}${RESET}`);
     } else {
       successCount++;
-      const numericScores = [st.score, gor.score].filter(
+      const numericScores = [st.score, gor.score, qs.score].filter(
         (s): s is number => typeof s === "number",
       );
       const avg = numericScores.reduce((a, b) => a + b, 0) / numericScores.length;
