@@ -9,16 +9,23 @@ import { randomUUID } from "crypto";
 const CREATE_TABLE_SQL = `
 -- Run this once in your Supabase SQL editor before using judge or import-human modes:
 CREATE TABLE IF NOT EXISTS eval_scores (
-  id                      SERIAL PRIMARY KEY,
-  test_case_id            TEXT NOT NULL,
-  run_date                TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  score_type              TEXT NOT NULL CHECK (score_type IN ('human', 'llm_judge')),
-  warmth_friendliness     TEXT,
-  natural_tone            TEXT,
-  stays_on_topic          TEXT,
-  quality_of_alternatives TEXT,
-  notes                   TEXT
+  id                    SERIAL PRIMARY KEY,
+  test_case_id          TEXT NOT NULL,
+  run_date              TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  score_type            TEXT NOT NULL CHECK (score_type IN ('human', 'llm_judge')),
+  stays_on_topic        TEXT,
+  gets_order_right      TEXT,
+  quality_of_suggestions TEXT,
+  notes                 TEXT
 );
+
+-- If the table already exists, run this instead:
+-- ALTER TABLE eval_scores
+--   DROP COLUMN IF EXISTS warmth_friendliness,
+--   DROP COLUMN IF EXISTS natural_tone,
+--   DROP COLUMN IF EXISTS quality_of_alternatives,
+--   ADD COLUMN IF NOT EXISTS gets_order_right TEXT,
+--   ADD COLUMN IF NOT EXISTS quality_of_suggestions TEXT;
 `.trim();
 
 interface TestCase {
@@ -37,10 +44,9 @@ interface TestCaseResult {
 }
 
 interface JudgeScores {
-  warmth_friendliness: { score: number; reason: string };
-  natural_tone: { score: number; reason: string };
   stays_on_topic: { score: number; reason: string };
-  quality_of_alternatives: { score: number | "N/A"; reason: string };
+  gets_order_right: { score: number; reason: string };
+  quality_of_suggestions: { score: number | "N/A"; reason: string };
 }
 
 function getSupabase() {
@@ -147,21 +153,19 @@ function parseCsv(raw: string): string[][] {
 const judgeClient = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 const JUDGE_MODEL = process.env.BREW_MODEL ?? "claude-haiku-4-5";
 
-const JUDGE_SYSTEM = `You are an expert evaluator for a coffee shop ordering chatbot called Brew. Assess the quality of the assistant response on four dimensions.
+const JUDGE_SYSTEM = `You are an expert evaluator for a coffee shop ordering chatbot called Brew. Assess the quality of the assistant response on three dimensions.
 
 Return ONLY a valid JSON object with no other text:
 {
-  "warmth_friendliness":     {"score": <1-5>,        "reason": "<one sentence>"},
-  "natural_tone":            {"score": <1-5>,        "reason": "<one sentence>"},
   "stays_on_topic":          {"score": <1-5>,        "reason": "<one sentence>"},
-  "quality_of_alternatives": {"score": <1-5|"N/A">, "reason": "<one sentence>"}
+  "gets_order_right":        {"score": <1-5>,        "reason": "<one sentence>"},
+  "quality_of_suggestions":  {"score": <1-5|"N/A">, "reason": "<one sentence>"}
 }
 
 Rubrics:
-- warmth_friendliness (1-5): Does it feel like a real barista? 5=genuinely warm; 1=cold/robotic.
-- natural_tone (1-5): Does it sound like natural human conversation? 5=flows naturally; 1=stilted.
-- stays_on_topic (1-5): Focused on coffee ordering? 5=fully on-topic; 1=wanders off-script.
-- quality_of_alternatives (1-5 or "N/A"): When an item is unavailable, does it suggest a helpful substitute? 5=excellent; 1=just says no. Use "N/A" if no substitution situation exists.`;
+- stays_on_topic (1-5): Is the response focused on coffee ordering? 5=fully on-topic; 1=wanders off-script.
+- gets_order_right (1-5): Did the AI correctly handle the order — enforce inventory restrictions, decline when it should, avoid submitting when it shouldn't? 5=perfect handling; 1=accepted what it should have refused or refused what it should have accepted.
+- quality_of_suggestions (1-5 or "N/A"): When an item or ingredient is unavailable, did the AI proactively offer the right alternative? 5=excellent suggestion; 1=just said no with no help. Use "N/A" if no substitution situation exists in this response.`;
 
 async function judgeResponse(
   tcDescription: string,
@@ -248,17 +252,16 @@ async function modeExport(testCases: TestCase[]) {
     "test_case_id",
     "test_case_description",
     "actual_response",
-    "warmth_friendliness",
-    "natural_tone",
     "stays_on_topic",
-    "quality_of_alternatives",
+    "gets_order_right",
+    "quality_of_suggestions",
     "notes",
   ];
 
   const csvLines = [
     headers.map(csvEscape).join(","),
     ...results.map((r) =>
-      [r.tc.id, r.tc.description, r.lastResponse, "", "", "", "", ""]
+      [r.tc.id, r.tc.description, r.lastResponse, "", "", "", ""]
         .map(csvEscape)
         .join(","),
     ),
@@ -271,7 +274,7 @@ async function modeExport(testCases: TestCase[]) {
   console.log(
     `\n${BOLD}Exported ${results.length} responses → eval_quality_responses.csv${RESET}`,
   );
-  console.log("Fill in the four rating columns (1-5 or N/A), then run:");
+  console.log("Fill in the three rating columns (1-5 or N/A), then run:");
   console.log(
     "  npx tsx server/evaluate_quality.ts import-human eval_quality_responses.csv\n",
   );
@@ -317,32 +320,30 @@ async function modeJudge(testCases: TestCase[]) {
       continue;
     }
 
-    const wf = scores.warmth_friendliness;
-    const nt = scores.natural_tone;
     const st = scores.stays_on_topic;
-    const qa = scores.quality_of_alternatives;
+    const gor = scores.gets_order_right;
+    const qs = scores.quality_of_suggestions;
 
     const { error } = await supabase.from("eval_scores").insert({
       test_case_id: tc.id,
       run_date: runDate,
       score_type: "llm_judge",
-      warmth_friendliness: String(wf.score),
-      natural_tone: String(nt.score),
       stays_on_topic: String(st.score),
-      quality_of_alternatives: String(qa.score),
-      notes: [wf.reason, nt.reason, st.reason, qa.reason].join(" | "),
+      gets_order_right: String(gor.score),
+      quality_of_suggestions: String(qs.score),
+      notes: [st.reason, gor.reason, qs.reason].join(" | "),
     });
 
     if (error) {
       console.log(` ${RED}DB ERROR: ${error.message}${RESET}`);
     } else {
       successCount++;
-      const numericScores = [wf.score, nt.score, st.score].filter(
+      const numericScores = [st.score, gor.score].filter(
         (s): s is number => typeof s === "number",
       );
       const avg = numericScores.reduce((a, b) => a + b, 0) / numericScores.length;
       console.log(
-        ` ${GREEN}done${RESET} ${DIM}wf=${wf.score} nt=${nt.score} st=${st.score} qa=${qa.score} avg=${avg.toFixed(1)}${RESET}`,
+        ` ${GREEN}done${RESET} ${DIM}st=${st.score} gor=${gor.score} qs=${qs.score} avg=${avg.toFixed(1)}${RESET}`,
       );
     }
   }
@@ -377,10 +378,9 @@ async function modeImportHuman(csvPath: string) {
   const header = rows[0].map((h) => h.trim());
   const idx = (name: string) => header.indexOf(name);
   const idxId = idx("test_case_id");
-  const idxWf = idx("warmth_friendliness");
-  const idxNt = idx("natural_tone");
   const idxSt = idx("stays_on_topic");
-  const idxQa = idx("quality_of_alternatives");
+  const idxGor = idx("gets_order_right");
+  const idxQs = idx("quality_of_suggestions");
   const idxNotes = idx("notes");
 
   if (idxId === -1) {
@@ -398,13 +398,12 @@ async function modeImportHuman(csvPath: string) {
     const testCaseId = row[idxId]?.trim();
     if (!testCaseId) continue;
 
-    const wf = (idxWf >= 0 ? row[idxWf] : "")?.trim() ?? "";
-    const nt = (idxNt >= 0 ? row[idxNt] : "")?.trim() ?? "";
     const st = (idxSt >= 0 ? row[idxSt] : "")?.trim() ?? "";
-    const qa = (idxQa >= 0 ? row[idxQa] : "")?.trim() ?? "";
+    const gor = (idxGor >= 0 ? row[idxGor] : "")?.trim() ?? "";
+    const qs = (idxQs >= 0 ? row[idxQs] : "")?.trim() ?? "";
     const notes = (idxNotes >= 0 ? row[idxNotes] : "")?.trim() ?? "";
 
-    const invalid = [wf, nt, st, qa].filter((v) => v !== "" && !VALID.has(v));
+    const invalid = [st, gor, qs].filter((v) => v !== "" && !VALID.has(v));
     if (invalid.length > 0) {
       console.log(
         `${YELLOW}[${testCaseId}] Skipped — invalid values: ${invalid.join(", ")} (use 1-5 or N/A)${RESET}`,
@@ -413,7 +412,7 @@ async function modeImportHuman(csvPath: string) {
       continue;
     }
 
-    if (!wf && !nt && !st && !qa && !notes) {
+    if (!st && !gor && !qs && !notes) {
       console.log(`${DIM}[${testCaseId}] Skipped — no scores filled in${RESET}`);
       skipped++;
       continue;
@@ -426,10 +425,9 @@ async function modeImportHuman(csvPath: string) {
       test_case_id: testCaseId,
       run_date: runDate,
       score_type: "human",
-      warmth_friendliness: normalize(wf),
-      natural_tone: normalize(nt),
       stays_on_topic: normalize(st),
-      quality_of_alternatives: normalize(qa),
+      gets_order_right: normalize(gor),
+      quality_of_suggestions: normalize(qs),
       notes: notes || null,
     });
 
@@ -488,16 +486,14 @@ async function modeCompare() {
   }
 
   const dimensions = [
-    "warmth_friendliness",
-    "natural_tone",
     "stays_on_topic",
-    "quality_of_alternatives",
+    "gets_order_right",
+    "quality_of_suggestions",
   ] as const;
   const dimLabel: Record<string, string> = {
-    warmth_friendliness: "Warmth",
-    natural_tone: "Natural Tone",
     stays_on_topic: "On Topic",
-    quality_of_alternatives: "Alternatives",
+    gets_order_right: "Order Right",
+    quality_of_suggestions: "Suggestions",
   };
 
   const COL_ID = 8;
