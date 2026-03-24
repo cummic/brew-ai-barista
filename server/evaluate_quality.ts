@@ -41,6 +41,7 @@ interface TestCase {
 interface TestCaseResult {
   tc: TestCase;
   lastResponse: string;
+  fullConversation: string;
 }
 
 interface JudgeScores {
@@ -87,15 +88,17 @@ async function runTestCaseWithResponse(tc: TestCase): Promise<TestCaseResult> {
   orderState = { ...orderState, ...nameStep.stateUpdates };
 
   let lastResponse = "";
+  const turns: string[] = [];
   for (const userMsg of tc.messages) {
     history.push({ role: "user", content: userMsg });
     const result = await runBaristaChat(history, orderState);
     history.push({ role: "assistant", content: result.message });
     orderState = { ...orderState, ...result.stateUpdates };
     lastResponse = result.message;
+    turns.push(`User: ${userMsg}\nAssistant: ${result.message}`);
   }
 
-  return { tc, lastResponse };
+  return { tc, lastResponse, fullConversation: turns.join("\n\n") };
 }
 
 function csvEscape(value: string): string {
@@ -252,6 +255,7 @@ async function modeExport(testCases: TestCase[]) {
     "test_case_id",
     "test_case_description",
     "actual_response",
+    "full_conversation",
     "stays_on_topic",
     "gets_order_right",
     "quality_of_suggestions",
@@ -261,7 +265,7 @@ async function modeExport(testCases: TestCase[]) {
   const csvLines = [
     headers.map(csvEscape).join(","),
     ...results.map((r) =>
-      [r.tc.id, r.tc.description, r.lastResponse, "", "", "", ""]
+      [r.tc.id, r.tc.description, r.lastResponse, r.fullConversation, "", "", "", ""]
         .map(csvEscape)
         .join(","),
     ),
