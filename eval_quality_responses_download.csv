@@ -1,26 +1,32 @@
-"test_case_id","test_case_description","actual_response","warmth_friendliness","natural_tone","stays_on_topic","quality_of_alternatives","notes"
-"TC-01","Happy path: wtc latte whole milk no pastry 0% tip — full order submitted","Perfect, Eval! Look for your name at the pickup area at WTC. Should be ready in a few minutes. Thanks!","","","","",""
-"TC-02","Happy path: grand_central cortado almond milk chocolate_croissant 10% tip","Perfect! Look for your name at the pickup area at Grand Central. Your order should be ready in about 5 minutes. Thanks, Eval!","","","","",""
-"TC-03","Happy path: penn latte 2pct milk croissant 0% tip","You're all set, Eval! Look for your name at the pickup area at Penn Station — should be ready in about 5 minutes. Thanks!","","","","",""
-"TC-04","Inventory restriction: cortado not stocked at penn — order must not be submitted","I've got to let you know — we only have lattes at Penn Station right now. Want to go with a latte instead?","","","","",""
-"TC-05","Inventory restriction: almond milk not stocked at penn — order must not be submitted","I appreciate that, but we don't carry almond milk at Penn Station. We've got whole milk or 2% — which works for you?","","","","",""
-"TC-06","Inventory restriction: chocolate_croissant not stocked at penn — order must not be submitted","I appreciate it, but we don't carry chocolate croissants here at Penn Station — just the regular croissant. Want that instead?","","","","",""
-"TC-07","Location ambiguity: 'train station' is not a specific location — get_store_info must not be called","I hear you, but I need to know which specific station you're at — World Trade Center, Penn Station, or Grand Central? They're all train stations, so just let me know which one.","","","","",""
-"TC-08","Location ambiguity: 'downtown transit hub' is not specific — get_store_info must not be called","I hear you, but I need the specific location name to make sure I get your order right. Are you at World Trade Center, Penn Station, or Grand Central?","","","","",""
-"TC-09","Price validation: almond latte + croissant + 10% tip at wtc — price must come from calculate_total","Perfect, Eval! Look for your name at the pickup area at WTC. Should be ready in about 5 minutes. Thanks!","","","","",""
-"TC-10","Off-topic guardrail: non-coffee question redirected — no tools should be called","Ha, I wish I could help with that! But I'm just here to get you a good coffee. So which Brew location are you at?","","","","",""
-"TC-11","Menu happy path: location confirmed first (wtc), then price list requested — get_store_info must be called, no order placed","We've got lattes and cortados. Want me to walk you through what we have?","","","","",""
-"TC-12","Menu happy path: penn price list shows limited inventory only — get_store_info called, no order placed","Sure thing! Here's what we've got at Penn Station:
+"test_case_id","test_case_description","actual_response","stays_on_topic","gets_order_right","quality_of_suggestions","notes"
+"TC-01","Happy path: wtc latte whole milk no pastry 0% tip — full order submitted","You're all set, Eval! Look for your name at the pickup area at WTC. Should be ready in about 5 minutes. Thanks!","","","",""
+"TC-02","Happy path: grand_central cortado almond milk chocolate_croissant 10% tip","You're all set, Eval! Look for your name at the pickup area at Grand Central. Your order should be ready in about 5 minutes. Thanks!","","","",""
+"TC-03","Happy path: penn latte 2pct milk croissant 0% tip","You're all set, Eval! Look for your name at the pickup area at Penn Station. Your order should be ready in about 5 minutes. Thanks!","","","",""
+"TC-04","Inventory restriction: cortado not stocked at penn — order must not be submitted","I appreciate that, but we've only got lattes here at Penn Station right now. Want to go with a latte instead?","","","",""
+"TC-05","Inventory restriction: almond milk not stocked at penn — order must not be submitted","I appreciate it, but we don't carry almond milk here at Penn Station. We've got whole milk or 2% — which would you prefer?","","","",""
+"TC-06","Inventory restriction: chocolate_croissant not stocked at penn — order must not be submitted","I appreciate that, but we don't have chocolate croissants at Penn Station right now. We've got a regular croissant though — want that instead?","","","",""
+"TC-07","Location ambiguity: 'train station' is not a specific location — get_store_info must not be called","I hear you, but I need to know which specific station you're at — is it World Trade Center, Penn Station, or Grand Central?","","","",""
+"TC-08","Location ambiguity: 'downtown transit hub' is not specific — get_store_info must not be called","Got it, but I need to know the exact spot. Are you at World Trade Center, Penn Station, or Grand Central?","","","",""
+"TC-09","Price validation: almond latte + croissant + 10% tip at wtc — price must come from calculate_total","You're all set, Eval! Look for your name at the pickup area at WTC. Should be ready in about 5 minutes. Thanks!","","","",""
+"TC-10","Off-topic guardrail: non-coffee question redirected — no tools should be called","Ha, I wish I could help with that! I'm just here to get you some good coffee though. So — which Brew location are you at?","","","",""
+"TC-11","Menu happy path: location confirmed first (wtc), then price list requested — get_store_info must be called, no order placed","Drinks: Latte $5.50, Cortado $4.00
+
+Milk Options: Whole Milk Included, 2% Milk Included, Almond Milk +$0.75
+
+Pastries: Croissant $3.50, Chocolate Croissant $4.00","","","",""
+"TC-12","Menu happy path: penn price list shows limited inventory only — get_store_info called, no order placed","Here's what we've got at Penn Station:
 
 Drinks: Latte $5.50
+
 Milk Options: Whole Milk Included, 2% Milk Included
+
 Pastries: Croissant $3.50
 
-What sounds good?","","","","",""
-"TC-13","Menu negative: price list requested before location stated — get_store_info must NOT be called","I'll show you what we have, but I need to know which location first. Are you at World Trade Center, Penn Station, or Grand Central?","","","","",""
-"TC-14","Menu negative: 'all locations' menu request before location confirmed — get_store_info must NOT be called","I can only show you one location at a time. Which one are you actually at right now — World Trade Center, Penn Station, or Grand Central?","","","","",""
-"TC-15","Menu negative: ambiguous location given with price list request — get_store_info must NOT be called","I need you to be a bit more specific — which station? World Trade Center, Penn Station, or Grand Central?","","","","",""
-"TC-16","Inventory restriction: cortado is_available=false at grand_central via location_inventory — AI must decline and NOT call submit_order. NOTE: requires location_inventory table with (location_id='grand_central', product_id='cortado', is_available=false) and corresponding get_store_info logic.","Nice. What milk would you like — whole, 2%, or almond?","","","","",""
-"TC-17","Bulk order guardrail: '4 lattes for my office' must be intercepted before any API call — no tools called","Got it! Before I get those going, which location are you ordering from — World Trade Center, Penn Station, or Grand Central?","","","","",""
-"TC-18","Tip validation: dollar amount tip rejected — user says '$2 tip', Claude must ask for 0% or 10% and NOT submit the order","I hear you, but right now we can only do 0% or 10% tip. Which works for you?","","","","",""
-"TC-19","Bulk order guardrail: written-out number word 'four cortados for my team' must be intercepted before any API call — no tools called","Got it! Before I ring those up, which location are you at — World Trade Center, Penn Station, or Grand Central?","","","","",""
+What works for you?","","","",""
+"TC-13","Menu negative: price list requested before location stated — get_store_info must NOT be called","I'll grab that for you — but first, which location are you at? World Trade Center, Penn Station, or Grand Central?","","","",""
+"TC-14","Menu negative: 'all locations' menu request before location confirmed — get_store_info must NOT be called","I got you — but let me grab one location at a time for you. Which one do you want to start with?","","","",""
+"TC-15","Menu negative: ambiguous location given with price list request — get_store_info must NOT be called","Hey, just to be clear — which station? World Trade Center, Penn Station, or Grand Central? Once I know, I'll pull up what we've got.","","","",""
+"TC-16","Inventory restriction: cortado is_available=false at grand_central via location_inventory — AI must decline and NOT call submit_order. NOTE: requires location_inventory table with (location_id='grand_central', product_id='cortado', is_available=false) and corresponding get_store_info logic.","Great! What milk would you like in that — whole, 2%, or almond?","","","",""
+"TC-17","Bulk order guardrail: '4 lattes for my office' must be intercepted before any API call — no tools called","Got it — four lattes! But first, which location are you picking up from? World Trade Center, Penn Station, or Grand Central?","","","",""
+"TC-18","Tip validation: dollar amount tip rejected — user says '$2 tip', Claude must ask for 0% or 10% and NOT submit the order","I hear you, but right now we've got 0% or 10% available. Which works for you?","","","",""
+"TC-19","Bulk order guardrail: written-out number word 'four cortados for my team' must be intercepted before any API call — no tools called","Got it, four cortados! But first — which location are you ordering from? World Trade Center, Penn Station, or Grand Central?","","","",""
