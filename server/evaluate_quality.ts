@@ -158,6 +158,8 @@ const JUDGE_MODEL = process.env.BREW_MODEL ?? "claude-haiku-4-5";
 
 const JUDGE_SYSTEM = `You are an expert evaluator for a coffee shop ordering chatbot called Brew. Assess the quality of the assistant response on three dimensions.
 
+IMPORTANT SCOPE CONSTRAINT: You are evaluating RESPONSE TEXT ONLY. You cannot see, and must not attempt to infer, whether any backend tools, API calls, or price calculations were executed correctly underneath the response. Those are covered by separate automated pass/fail checks. Your sole input is the text the assistant sent to the user — judge only that.
+
 Return ONLY a valid JSON object with no other text:
 {
   "stays_on_topic":          {"score": <1-5>,        "reason": "<one sentence>"},
@@ -167,7 +169,7 @@ Return ONLY a valid JSON object with no other text:
 
 Rubrics:
 - stays_on_topic (1-5): Is the response focused on coffee ordering? 5=fully on-topic; 1=wanders off-script.
-- gets_order_right (1-5): Did the AI correctly handle the order — enforce inventory restrictions, decline when it should, avoid submitting when it shouldn't? 5=perfect handling; 1=accepted what it should have refused or refused what it should have accepted.
+- gets_order_right (1-5): Based solely on the visible response text — did the AI communicate clearly, handle the user's request appropriately, and avoid saying something wrong or harmful? Do NOT penalize a response for potentially missing backend behavior you cannot observe (e.g. whether a price was calculated correctly, whether a tool was called). Score only what the response text itself says or fails to say. Note: confirmation messages such as "You're all set!", "Your order is in!", or "Look for your name at the pickup area" are valid, correct order completions and should be scored 5 unless the response text itself contains a factual error or problem.
 - quality_of_suggestions (1-5 or "N/A"): When an item or ingredient is unavailable, did the AI proactively offer the right alternative? 5=excellent suggestion; 1=just said no with no help. Use "N/A" if no substitution situation exists in this response.`;
 
 async function judgeResponse(
