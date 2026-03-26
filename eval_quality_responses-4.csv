@@ -1,0 +1,133 @@
+test_case_id,test_case_description,actual_response,full_conversation,stays_on_topic,gets_order_right,quality_of_suggestions,notes
+TC-01,Happy path: wtc latte whole milk no pastry 0% tip — full order submitted,"Perfect, Eval. Look for your name at the pickup area at WTC — should be ready in about 5 minutes. Thanks!","User: WTC
+Assistant: Perfect, Eval. So what can I get you?
+
+User: latte with whole milk please
+Assistant: Great. Want to add a croissant or chocolate croissant?
+
+User: no pastry thanks
+Assistant: Got it. And how much would you like to tip — 0% or 10%?
+
+User: no tip
+Assistant: Your total is $5.99. We'll charge the card on file — sound good?
+
+User: yes please charge my card
+Assistant: Perfect, Eval. Look for your name at the pickup area at WTC — should be ready in about 5 minutes. Thanks!",5,5,5,
+TC-02,Happy path: grand_central cortado almond milk chocolate_croissant 10% tip,"You're all set, Eval! Look for your name at the pickup area at Grand Central. Should be ready in about 5 minutes. Thanks!","User: Grand Central
+Assistant: Perfect! What can I get you?
+
+User: cortado with almond milk
+Assistant: You got it — cortado with almond milk. Want to add a pastry? We've got croissant or chocolate croissant.
+
+User: yes I'll take a chocolate croissant
+Assistant: Great! How'd you like to tip — 0% or 10%?
+
+User: 10 percent tip
+Assistant: Perfect. Your total is $10.48. We'll charge the card on file — sound good?
+
+User: yes charge it
+Assistant: You're all set, Eval! Look for your name at the pickup area at Grand Central. Should be ready in about 5 minutes. Thanks!",5,5,5,
+TC-03,Happy path: penn latte 2pct milk croissant 0% tip,"You're all set, Eval! Look for your name at the pickup area at Penn Station. Should be ready in about 5 minutes. Thanks!","User: Penn Station
+Assistant: Perfect! So you're at Penn Station. What can I get you?
+
+User: latte with 2% milk
+Assistant: Great, latte with 2% milk. Want to grab a croissant with that?
+
+User: yes a croissant please
+Assistant: Perfect. And how much would you like to tip — 0% or 10%?
+
+User: no tip
+Assistant: Got it. Your total comes to $9.80. We'll charge the card on file — sound good?
+
+User: yes go ahead
+Assistant: You're all set, Eval! Look for your name at the pickup area at Penn Station. Should be ready in about 5 minutes. Thanks!",5,5,5,
+TC-04,Inventory restriction: cortado not stocked at penn — order must not be submitted,"I appreciate it, but we've only got lattes here at Penn Station. Want to go with a latte instead?","User: Penn Station
+Assistant: Perfect, Eval. What can I get you?
+
+User: I'd like a cortado please
+Assistant: I appreciate it, but we've only got lattes here at Penn Station. Want to go with a latte instead?",5,5,5,
+TC-05,Inventory restriction: almond milk not stocked at penn — order must not be submitted,"I've got to let you know — we don't carry almond milk at Penn Station. We've got whole milk or 2%, though. Which works for you?","User: Penn Station
+Assistant: What can I get you?
+
+User: latte with almond milk please
+Assistant: I've got to let you know — we don't carry almond milk at Penn Station. We've got whole milk or 2%, though. Which works for you?",5,5,5,
+TC-06,Inventory restriction: chocolate_croissant not stocked at penn — order must not be submitted,"I appreciate that, but we don't have chocolate croissants at Penn Station — just the plain croissant. Want to go with that instead?","User: Penn Station
+Assistant: Perfect! What can I get you?
+
+User: latte with whole milk
+Assistant: Great! You want a latte with whole milk. How about a pastry — we've got a croissant?
+
+User: I'll have a chocolate croissant
+Assistant: I appreciate that, but we don't have chocolate croissants at Penn Station — just the plain croissant. Want to go with that instead?",5,5,5,
+TC-07,Location ambiguity: 'train station' is not a specific location — get_store_info must not be called,"I hear you, but I need to know which one — are you at Penn Station, World Trade Center, or Grand Central?","User: I'm at the train station, can I order?
+Assistant: I hear you, but I need to know which one — are you at Penn Station, World Trade Center, or Grand Central?",5,5,4,grammar is slighly off
+TC-08,Location ambiguity: 'downtown transit hub' is not specific — get_store_info must not be called,"Got it, but I need to know the exact location. Are you at World Trade Center, Penn Station, or Grand Central?","User: I'm downtown near the transit hub
+Assistant: Got it, but I need to know the exact location. Are you at World Trade Center, Penn Station, or Grand Central?",5,5,5,
+TC-09,Price validation: almond latte + croissant + 10% tip at wtc — price must come from calculate_total,You're all set! Look for your name at the pickup area at WTC. Your order should be ready in about 5 minutes. Thanks!,"User: WTC
+Assistant: Perfect! So you're at WTC. What can I get you?
+
+User: latte with almond milk
+Assistant: Great choice. You want that latte with almond milk?
+
+User: yes a croissant please
+Assistant: Perfect. So that's a latte with almond milk and a croissant. How do you want to tip — 0% or 10%?
+
+User: 10% tip
+Assistant: Your total is $11.68. Sound good? We'll charge your card on file.
+
+User: yes charge my card
+Assistant: You're all set! Look for your name at the pickup area at WTC. Your order should be ready in about 5 minutes. Thanks!",5,5,5,
+TC-10,Off-topic guardrail: non-coffee question redirected — no tools should be called,"Ha, I appreciate it, but I'm just here for coffee! Which Brew location are you at right now?","User: Can you help me figure out the subway map?
+Assistant: Ha, I appreciate it, but I'm just here for coffee! Which Brew location are you at right now?",5,5,4,response was a bit odd. The assistant shouldn't say I appreciate it to the user question. It doesn't make sense
+TC-11,"Menu happy path: location confirmed first (wtc), then price list requested — get_store_info must be called, no order placed","We've got lattes here at WTC. For milk, you can do whole, 2%, or almond — almond's an extra 75 cents. And we have croissant or chocolate croissant if you want a pastry.
+
+What'll it be?","User: WTC
+Assistant: Perfect! So what can I get you?
+
+User: what's on the menu?
+Assistant: We've got lattes here at WTC. For milk, you can do whole, 2%, or almond — almond's an extra 75 cents. And we have croissant or chocolate croissant if you want a pastry.
+
+What'll it be?",5,5,3,The formatting for the menu is off. It should show the menu and the prices. 
+TC-12,"Menu happy path: penn price list shows limited inventory only — get_store_info called, no order placed","Sure thing! Here's what we've got at Penn Station:
+
+Drinks: Latte $5.50
+Milk Options: Whole Milk Included, 2% Milk Included
+Pastries: Croissant $3.50
+
+What sounds good?","User: Penn Station
+Assistant: Perfect! So you're at Penn Station. What can I get you?
+
+User: can I see the price list?
+Assistant: Sure thing! Here's what we've got at Penn Station:
+
+Drinks: Latte $5.50
+Milk Options: Whole Milk Included, 2% Milk Included
+Pastries: Croissant $3.50
+
+What sounds good?",5,5,5,
+TC-13,Menu negative: price list requested before location stated — get_store_info must NOT be called,"I'll grab the menu for you once I know which location you're at. Are you at World Trade Center, Penn Station, or Grand Central?","User: what's on the menu?
+Assistant: I'll grab the menu for you once I know which location you're at. Are you at World Trade Center, Penn Station, or Grand Central?",5,5,5,
+TC-14,Menu negative: 'all locations' menu request before location confirmed — get_store_info must NOT be called,I can only show you one location at a time. Which one are you actually at right now?,"User: show me the menu for all three locations
+Assistant: I can only show you one location at a time. Which one are you actually at right now?",5,5,5,
+TC-15,Menu negative: ambiguous location given with price list request — get_store_info must NOT be called,"I need to know which station — are you at Penn Station or Grand Central? Once I know, I can show you what we've got and the prices.","User: I'm at the station, what's on the price list?
+Assistant: I need to know which station — are you at Penn Station or Grand Central? Once I know, I can show you what we've got and the prices.",5,5,5,
+TC-16,"Inventory restriction: cortado is_available=false at grand_central via location_inventory — AI must decline and NOT call submit_order. NOTE: requires location_inventory table with (location_id='grand_central', product_id='cortado', is_available=false) and corresponding get_store_info logic.","Great! What kind of milk — whole, 2%, or almond?","User: Grand Central
+Assistant: Perfect! What can I get you?
+
+User: I'd like a cortado please
+Assistant: Great! What kind of milk — whole, 2%, or almond?",5,1,1,cortado is not available. It should tell the user that. 
+TC-17,Bulk order guardrail: '4 lattes for my office' must be intercepted before any API call — no tools called,"Hey, I appreciate the order, but I can only handle one drink at a time. What can I get for you?","User: 4 lattes for my office
+Assistant: Hey, I appreciate the order, but I can only handle one drink at a time. What can I get for you?",5,5,5,
+TC-18,"Tip validation: dollar amount tip rejected — user says '$2 tip', Claude must ask for 0% or 10% and NOT submit the order","I hear you, but right now we only do 0% or 10% tip options. Which works for you?","User: WTC
+Assistant: Perfect, Eval. What can I get you?
+
+User: latte with whole milk
+Assistant: Great. You want a latte with whole milk. Want to add a pastry — we've got croissant or chocolate croissant?
+
+User: no pastry
+Assistant: Got it. How do you want to tip — 0% or 10%?
+
+User: I want to tip $2
+Assistant: I hear you, but right now we only do 0% or 10% tip options. Which works for you?",5,5,5,
+TC-19,Bulk order guardrail: written-out number word 'four cortados for my team' must be intercepted before any API call — no tools called,"Hey, I appreciate it, but I can only take one order at a time right now. What can I get for you?","User: four cortados for my team
+Assistant: Hey, I appreciate it, but I can only take one order at a time right now. What can I get for you?",5,5,5,
