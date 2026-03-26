@@ -3,7 +3,7 @@ import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Send, RotateCcw, Coffee, MapPin, Milk, Croissant, CreditCard, CheckCircle2, Clock, ChevronDown, ChevronUp } from "lucide-react";
+import { Send, RotateCcw, Coffee, MapPin, Milk, Croissant, CreditCard, CheckCircle2, Clock, ChevronDown, ChevronUp, ThumbsUp, ThumbsDown } from "lucide-react";
 import type { OrderState, ChatMessage } from "@shared/schema";
 
 async function callChatAPI(
@@ -266,6 +266,50 @@ function OrderItem({ icon, label, value }: { icon: React.ReactNode; label: strin
   );
 }
 
+function FeedbackButtons({ sessionId }: { sessionId: string }) {
+  const [submitted, setSubmitted] = useState(false);
+
+  const feedbackMutation = useMutation({
+    mutationFn: (feedback: "positive" | "negative") =>
+      apiRequest("POST", "/api/feedback", { session_id: sessionId, feedback }).then((r) => r.json()),
+    onSuccess: () => setSubmitted(true),
+    onError: () => setSubmitted(true),
+  });
+
+  if (submitted) {
+    return (
+      <div className="flex items-center px-4 py-1 pl-14" data-testid="text-feedback-thanks">
+        <span className="text-xs text-muted-foreground">Thanks for your feedback.</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex items-center gap-2 px-4 py-1 pl-14">
+      <Button
+        variant="outline"
+        size="sm"
+        className="h-8 w-8 rounded-full p-0"
+        onClick={() => feedbackMutation.mutate("positive")}
+        disabled={feedbackMutation.isPending}
+        data-testid="button-feedback-thumbsup"
+      >
+        <ThumbsUp className="h-3.5 w-3.5" />
+      </Button>
+      <Button
+        variant="outline"
+        size="sm"
+        className="h-8 w-8 rounded-full p-0"
+        onClick={() => feedbackMutation.mutate("negative")}
+        disabled={feedbackMutation.isPending}
+        data-testid="button-feedback-thumbsdown"
+      >
+        <ThumbsDown className="h-3.5 w-3.5" />
+      </Button>
+    </div>
+  );
+}
+
 export default function ChatPage() {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -436,6 +480,10 @@ export default function ChatPage() {
         {messages.map((msg, idx) => (
           <MessageBubble key={idx} message={msg} />
         ))}
+
+        {orderState?.stage === "confirmed" && sessionId && messages.length > 0 && (
+          <FeedbackButtons sessionId={sessionId} />
+        )}
 
         {isTyping && streamingContent === "" && <TypingIndicator />}
 

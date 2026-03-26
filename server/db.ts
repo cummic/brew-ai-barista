@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import { Pool } from "pg";
 
 export interface DbLocation {
   id: string;
@@ -264,4 +265,31 @@ export async function insertOrder(params: {
   }
 
   return { orderId };
+}
+
+let feedbackPool: Pool | null = null;
+function getFeedbackPool(): Pool {
+  if (!feedbackPool) {
+    feedbackPool = new Pool({
+      host: process.env.PGHOST,
+      port: parseInt(process.env.PGPORT ?? "5432"),
+      user: process.env.PGUSER,
+      password: process.env.PGPASSWORD,
+      database: process.env.PGDATABASE,
+      ssl: false,
+    });
+  }
+  return feedbackPool;
+}
+
+export async function insertFeedback(
+  sessionId: string,
+  feedback: "positive" | "negative"
+): Promise<void> {
+  const pool = getFeedbackPool();
+  await pool.query(
+    "INSERT INTO session_feedback (session_id, feedback) VALUES ($1, $2)",
+    [sessionId, feedback]
+  );
+  console.log(`[db] feedback stored — session=${sessionId} feedback=${feedback}`);
 }

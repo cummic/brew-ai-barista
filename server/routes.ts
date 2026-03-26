@@ -5,6 +5,7 @@ import { runBaristaChat } from "./barista";
 import { checkPromptInjection } from "./guardrails";
 import { checkRateLimit } from "./rateLimit";
 import { logConversation } from "./observability";
+import { insertFeedback } from "./db";
 import { sendMessageSchema } from "@shared/schema";
 import { z } from "zod";
 
@@ -233,6 +234,24 @@ export async function registerRoutes(
       if (!res.headersSent) {
         res.status(500).json({ error: "AI service error. Please try again." });
       }
+    }
+  });
+
+  app.post("/api/feedback", async (req, res) => {
+    try {
+      const schema = z.object({
+        session_id: z.string().min(1),
+        feedback: z.enum(["positive", "negative"]),
+      });
+      const parsed = schema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ error: "Invalid request body" });
+      }
+      await insertFeedback(parsed.data.session_id, parsed.data.feedback);
+      res.json({ ok: true });
+    } catch (err) {
+      console.error("[feedback] error:", err);
+      res.status(500).json({ error: "Failed to save feedback" });
     }
   });
 
