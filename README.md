@@ -116,10 +116,10 @@ each specifically:
 - **Bulk order interception**: A code-level check in `routes.ts` detects group or multi-item order language ("for my office", quantities > 1, numbered item lists) and redirects immediately before any API call is made — protecting against the math failures that occur when Claude attempts multi-item order calculations beyond the single-order schema
 - **Dollar tip rejection**: System prompt instructs Claude to decline dollar-amount tips (e.g. "tip $2") and ask the user to choose 0% or 10%, ensuring tip is always a confirmed percentage before `calculate_total` is called
 
-### Eval Suite: 18 Test Cases, 8 Categories
+### Eval Suite: 20 Test Cases, 9 Categories
 
 The eval suite was designed before any evaluation code was written — test cases
-first, runner second. 18 cases across 8 categories — adding a bulk/group order redirect case (e.g. "4 lattes for my office" must be intercepted before any API call is made):
+first, runner second. 20 cases across 9 categories:
 
 - **Happy path** (3 cases): Full order flow at each location
 - **Inventory restriction** (4 cases): Items not stocked at a location must
@@ -132,9 +132,11 @@ first, runner second. 18 cases across 8 categories — adding a bulk/group order
   first, one location at a time
 - **Guardrails** (1 case): Off-topic requests must be redirected with no tools
   called
-- **Bulk order redirect** (1 case): Multi-item or group orders intercepted before any API call
+- **Bulk order redirect** (2 cases): Multi-item or group orders intercepted before any API call
 - **Tip validation** (1 case): Dollar-amount tips must be rejected; Claude
   must ask the user to choose 0% or 10%
+- **Conversation flow** (1 case): Mid-order responses must end with a follow-up
+  question — AI must never trail off after presenting alternatives
 
 The eval runner uses a concurrency-controlled parallel executor and a golden
 dataset (`golden_dataset.json`) that defines expected tool sequences and
@@ -184,6 +186,13 @@ A custom SQL analytics layer built in Supabase covering three tiers:
 - Conversation Transcript Retrieval — full session replay for qualitative
   review when a metric looks off
 
+### Post-Order Feedback
+
+After every confirmed order, a thumbs up / thumbs down prompt appears in the
+chat UI. Responses are stored in the `session_feedback` table in Supabase
+alongside `session_id` and a timestamp — giving a lightweight qualitative
+signal alongside the quantitative analytics above.
+
 ### Diagnostic Approach
 
 If a user reports something felt off: read the conversation transcript first
@@ -209,7 +218,7 @@ tradeoffs, and system design were mine.
   any inventory lookup), then directed AI to translate those rules into a
   prompt. The distinction matters: the rules reflect product decisions, the
   prompt is implementation.
-- The eval suite — 18 test cases across 8 categories written before a single
+- The eval suite — 20 test cases across 9 categories written before a single
   line of evaluation code existed
 - The two-layer inventory enforcement architecture — I identified that relying
   on Claude alone to enforce inventory wasn't safe enough for order accuracy
@@ -263,6 +272,10 @@ Brew was built iteratively over two weeks. Every row below represents a real dec
 | Beta prep | Beta readiness audit — iteration cap, session rate limiting, privacy notice, card disclaimer | Pre-beta audit identified 5 must-fix issues before any real user touched the app |
 | Beta findings | Added bulk order guardrail | Beta user attempted an office order — Claude tried to calculate 4 simultaneous totals, invented math, and produced wrong prices. Intercepted at the route level before any API call is made |
 | Beta findings | Fixed price calculation bugs | Bugs surfaced during GIF recording — prices and totals were incorrect in specific conversation paths. Added test cases to `golden_dataset.json` to prevent regression |
+| Reliability | TC-16 fix: `get_store_info` now explicitly returns unavailable drinks | AI was silently ignoring out-of-stock drinks rather than declining them — the prompt said "only accept items in inventory" but the tool response only listed what was available, so the AI had nothing to check against. `fetchStoreInfo` now returns an explicit `unavailable_drinks` list and the prompt mandates immediate decline for any item in it |
+| Reliability | Fixed mid-order conversation stall | AI was presenting milk alternatives without asking a follow-up question, leaving the conversation with no path forward. Added a HOW TO TALK rule: every mid-order response must end with a question. TC-20 added to eval suite to catch regression |
+| Observability | Added post-order feedback (thumbs up/down) | Lightweight qualitative signal captured after every confirmed order — stored in `session_feedback` table in Supabase alongside session ID and timestamp |
+| Eval | Fixed LLM-as-judge scope | Judge was penalizing responses for backend behavior it couldn't observe (e.g. whether a tool was called or a price was correct). Rewrote rubric to evaluate response text only — separate automated checks cover tool-call correctness |
 
 ---
 
@@ -330,15 +343,16 @@ designed with it in mind.
 ## Local Setup
 ```bash
 # 1. Clone the repo
-git clone https://github.com/your-username/brew-ai-barista.git
-cd brew-ai-barista
+git clone https://github.com/cummic/brewbot-nyc-poc.git
+cd brewbot-nyc-poc
 
 # 2. Install dependencies
 npm install
 
 # 3. Configure environment variables
-cp .env.example .env
-# Edit .env and add your API keys (see Environment Variables below)
+# Create a .env file in the project root with the variables listed below
+touch .env
+# Then add your API keys (see Environment Variables section)
 
 # 4. Start the dev server
 npm run dev
