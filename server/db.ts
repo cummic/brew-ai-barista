@@ -89,6 +89,7 @@ export interface StoreInfoResult {
     milk_options: { id: string; name: string; upcharge: number }[];
     pastries: { id: string; name: string; price: number }[];
   };
+  unavailable_drinks: { id: string; name: string }[];
 }
 
 export async function fetchStoreInfo(
@@ -133,6 +134,9 @@ export async function fetchStoreInfo(
   const drinks = data.products.filter(
     (p) => p.category === "drink" && availableProductIds.has(p.id)
   );
+  const unavailableDrinks = data.products.filter(
+    (p) => p.category === "drink" && !availableProductIds.has(p.id)
+  );
   const pastries = data.products.filter(
     (p) => p.category === "pastry" && availableProductIds.has(p.id)
   );
@@ -142,6 +146,7 @@ export async function fetchStoreInfo(
 
   console.log(
     `[db] fetchStoreInfo(${locationId}): drinks=[${drinks.map((d) => d.id).join(", ")}], ` +
+    `unavailable_drinks=[${unavailableDrinks.map((d) => d.id).join(", ")}], ` +
     `pastries=[${pastries.map((p) => p.id).join(", ")}], ` +
     `milk=[${milkModifiers.map((m) => m.id).join(", ")}]`
   );
@@ -157,6 +162,7 @@ export async function fetchStoreInfo(
       milk_options: milkModifiers.map((m) => ({ id: m.id, name: m.name, upcharge: m.upcharge })),
       pastries: pastries.map((p) => ({ id: p.id, name: p.name, price: p.base_price })),
     },
+    unavailable_drinks: unavailableDrinks.map((d) => ({ id: d.id, name: d.name })),
   };
 }
 
