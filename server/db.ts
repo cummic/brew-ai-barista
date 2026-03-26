@@ -1,5 +1,4 @@
 import { createClient } from "@supabase/supabase-js";
-import { Pool } from "pg";
 
 export interface DbLocation {
   id: string;
@@ -267,29 +266,36 @@ export async function insertOrder(params: {
   return { orderId };
 }
 
-let feedbackPool: Pool | null = null;
-function getFeedbackPool(): Pool {
-  if (!feedbackPool) {
-    feedbackPool = new Pool({
-      host: process.env.PGHOST,
-      port: parseInt(process.env.PGPORT ?? "5432"),
-      user: process.env.PGUSER,
-      password: process.env.PGPASSWORD,
-      database: process.env.PGDATABASE,
-      ssl: false,
-    });
-  }
-  return feedbackPool;
-}
+const SESSION_FEEDBACK_TABLE_SQL = `
+CREATE TABLE IF NOT EXISTS session_feedback (
+  id          bigserial PRIMARY KEY,
+  session_id  text        NOT NULL,
+  feedback    text        NOT NULL CHECK (feedback IN ('positive','negative')),
+  created_at  timestamptz NOT NULL DEFAULT now()
+);
+`.trim();
 
 export async function insertFeedback(
   sessionId: string,
   feedback: "positive" | "negative"
 ): Promise<void> {
-  const pool = getFeedbackPool();
-  await pool.query(
-    "INSERT INTO session_feedback (session_id, feedback) VALUES ($1, $2)",
-    [sessionId, feedback]
-  );
+  const sb = getSupabase();
+  const { error } = await sb
+    .from("session_feedback")
+    .insert({ session_id: sessionId, feedback });
+
+  if (error) {
+    if (error.code === "42P01") {
+      console.error(
+        "[db] session_feedback table does not exist in Supabase.\n" +
+        "Run the following SQL in your Supabase SQL editor:\n\n" +
+        SESSION_FEEDBACK_TABLE_SQL
+      );
+    } else {
+      console.error("[db] insertFeedback error:", error);
+    }
+    throw error;
+  }
+
   console.log(`[db] feedback stored — session=${sessionId} feedback=${feedback}`);
 }

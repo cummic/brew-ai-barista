@@ -239,5 +239,19 @@
     ],
     "expectedTools": [],
     "expectNoStoreInfo": true
+  },
+  {
+    "id": "TC-20",
+    "description": "Conversation flow: after presenting milk alternatives, AI must end with a follow-up question — not trail off",
+    "category": "conversation_flow",
+    "environment": "development",
+    "messages": [
+      "WTC",
+      "milk free cortado",
+      "Sure, but I can't drink milk"
+    ],
+    "expectedTools": ["get_store_info"],
+    "expectNoSubmitOrder": true,
+    "passCondition": "last_response_ends_with_question"
   }
 ]

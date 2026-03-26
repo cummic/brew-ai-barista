@@ -21,6 +21,7 @@ interface TestCase {
   expectedTools: string[];
   expectNoSubmitOrder?: boolean;
   expectNoStoreInfo?: boolean;
+  passCondition?: string;
   setup?: TestCaseSetup;
 }
 
@@ -112,6 +113,7 @@ async function runTestCase(
   let orderState = createOrderState();
   const allToolsUsed: string[] = [];
   let priceValidationFailed = false;
+  let lastAssistantText = "";
 
   // Bootstrap: mirror exactly what the web app does.
   // Step 1 — Send "Hello" to get Claude's opening greeting (asking for the customer's name).
@@ -144,6 +146,7 @@ async function runTestCase(
       history.push({ role: "assistant", content: result.message });
       allToolsUsed.push(...result.toolsUsed);
       orderState = { ...orderState, ...result.stateUpdates };
+      lastAssistantText = result.message;
 
       if (
         result.toolsUsed.includes("calculate_total") &&
@@ -193,6 +196,17 @@ async function runTestCase(
       pass: false,
       reason:
         "Price validation failed: AI quoted an amount that doesn't match the calculate_total result",
+      toolsUsed: allToolsUsed,
+    };
+  }
+
+  if (
+    tc.passCondition === "last_response_ends_with_question" &&
+    !lastAssistantText.trim().endsWith("?")
+  ) {
+    return {
+      pass: false,
+      reason: `Response must end with a question mark to keep the conversation going. Last response: "${lastAssistantText.slice(-120)}"`,
       toolsUsed: allToolsUsed,
     };
   }
