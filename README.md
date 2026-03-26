@@ -343,8 +343,8 @@ designed with it in mind.
 ## Local Setup
 ```bash
 # 1. Clone the repo
-git clone https://github.com/cummic/brewbot-nyc-poc.git
-cd brewbot-nyc-poc
+git clone https://github.com/cummic/brew-ai-barista.git
+cd brew-ai-barista
 
 # 2. Install dependencies
 npm install
