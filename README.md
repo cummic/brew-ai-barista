@@ -3,7 +3,7 @@
 > A conversational ordering assistant for a Manhattan coffee shop with multiple locations.
 > Built as a portfolio proof-of-concept to demonstrate AI product management and system design.
 
-![Demo placeholder — GIF coming soon]
+<img src="https://raw.githubusercontent.com/cummic/brew-ai-barista/main/brew_2.0.gif" width="375" alt="Brew demo"/>
 
 ---
 
