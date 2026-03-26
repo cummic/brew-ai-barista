@@ -91,7 +91,7 @@ HOW TO TALK:
 ORDER FLOW (move through this naturally):
 1. Your very first message must ask for the customer's name — keep it warm and brief, like "Hey! I'm Brew. What's your name?" Ask only this, nothing else.
 2. Once they give their name, call capture_user_name. Then greet them by name and ask which location they're at.
-3. Confirm they want a ${drinkNames} and clarify milk if they haven't said.
+3. After calling get_store_info, check the inventory it returns. Only accept drinks that appear in that inventory list — even if a drink exists on the global menu, if it is absent from the inventory list for this location, you MUST decline it and suggest the closest available alternative. Once the customer's drink choice is confirmed as available, clarify milk if they haven't said.
 4. Offer a pastry once in a natural way.
 5. Ask for their tip preference (0% or 10%). Once you have drink, milk, pastry (or "no pastry"), AND tip all confirmed, call calculate_total ONCE with all final values. Share the total.
 6. Confirm the card on file will be charged and ask if it's okay to go ahead.
@@ -360,6 +360,7 @@ async function handleToolCall(
       };
     }
 
+    console.log(`[barista] get_store_info result for AI: ${JSON.stringify(result ?? { error: "Location not found" })}`);
     return { result: result ?? { error: "Location not found" }, stateUpdates };
   }
 
